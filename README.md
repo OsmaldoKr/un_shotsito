@@ -1,16 +1,20 @@
-# un_shotsito
+# UnShotsito 🍻
 
-A new Flutter project.
+¡Bienvenido a **UnShotsito**! 🎉  
 
-## Getting Started
+UnShotsito es una divertida aplicación de juegos de shots para fiestas y reuniones con amigos. La app permite agregar jugadores, seleccionar modos y tipos de juego, y seguir retos aleatorios para pasar un buen rato.  
 
-This project is a starting point for a Flutter application.
+---
 
-A few resources to get you started if this is your first Flutter project:
+## 🎯 De qué trata
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+- Agrega los nombres de los jugadores.  
+- Elige un modo de juego: Leve, Normal o Piruca.  
+- Selecciona el tipo de juego: Pre, Pasaditos, After, Hot, Pareja o Bar.  
+- Sigue los retos que la app genera aleatoriamente para cada jugador, incluyendo algunos retos especiales sorpresa para animar la dinámica.  
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+---
+
+## 🖊 Creado por
+
+**FratresPixel**
