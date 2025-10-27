@@ -27,56 +27,66 @@ class _PantallaRetoState extends State<PantallaReto> {
   int? shotsActual;
   int contadorRetos = 0; // 🔹 Controla cada cuántos retos aparece un castigo
 
-  final List<String> castigos = [
-    "Los de pelo claro reparten 3 shots.",
-    "El más callado del grupo bebe 2 shots.",
-    "Los que traigan algo rojo reparten 2 tragos.",
-    "Todos los que hayan dicho 'ya no tomo' hoy, tómense 3 shots.",
-    "El más lento en levantar la mano se toma 2 tragos.",
+  List<String> get castigos => [
+    "Los de pelo claro reparten $shotsActual shots.",
+    "El más callado del grupo bebe $shotsActual shots.",
+    "Los que traigan algo rojo reparten $shotsActual tragos.",
+    "Todos los que hayan dicho 'ya no tomo' hoy, tómense $shotsActual shots.",
+    "El más lento en levantar la mano se toma $shotsActual tragos.",
     "¡A CAMBIAR! Cambia tu vaso con el jugador de la derecha.",
-    "Shot de boca a boca 😈",
+    "Shot de boca a boca",
+    "El que vaya vestido todo de negro toma $shotsActual tragos, no es funeral pendejo.",
+    "Los que usen Android pueden repartir $shotsActual tragos.",
+    "Los que usen iPhone pueden repartir $shotsActual tragos.",
+    "El más desmadroso de los jugadores puede repartir $shotsActual shots.",
   ];
 
   final Map<String, List<String>> retosPorModo = {
     'Pre': [
-      "cuenta un chiste malo o bebe 3 shots.",
-      "El que vaya vestido todo de negro toma 3 tragos, no es funeral pendejo.",
-      "Los que usen Android pueden repartir 2 tragos.",
-      "Los que usen iPhone pueden repartir 2 tragos.",
-      "El más desmadroso de los jugadores puede repartir 3 shots.",
-    ],
+      "cuenta un chiste malo o bebe 3 shots."
+      ],
+
     'Pasaditos': [
       "Name, di un fetiche de name, si name lo acepta, repartele 2 tragos, si no, bebetelos.",
       "Name, hazle una pregunta en secreto a Name (por ejemplo, ¿Quién es el más guapo?) y debe señalar a la persona.",
       "El último en darle un galletazo a Name se tiene que acabar su bebida.",
     ],
+
     'After': [
       "Name, tómate un video mientras te fondeas tu bebida.",
       "Si has tenido sexo en un carro, tómate 3 shots.",
     ],
+
     'Pareja': [
       "Name y Name, bésense durante 5 segundos 😘",
       "Name y Name, Bailen juntos 15 segundos 💃🕺",
     ],
+
     'Bar': [
       "Haz que el bartender te recomiende un trago 🍸",
       "Canta algo en voz alta 🎶",
     ],
+
     'Hot': [
       "Name, comenta un emoji enamorado en la publicación de Instagram que Name te diga, o tómate 5 shots.",
     ],
   };
 
-  /// 🔹 Reemplaza los "Name" del texto por nombres coherentes
+  /// Reemplaza los "Name" del texto por nombres coherentes
   /// El primer "Name" -> jugador actual
   /// Los siguientes -> un jugador aleatorio distinto
-  String procesarRetoAvanzado(String texto, String jugadorPrincipal, List<String> jugadores) {
+  String procesarRetoAvanzado(
+    String texto,
+    String jugadorPrincipal,
+    List<String> jugadores,
+  ) {
     if (!texto.contains("Name") && !texto.contains("name")) {
       return "$jugadorPrincipal, ${texto[0].toLowerCase()}${texto.substring(1)}";
     }
 
     // Escoger jugador secundario distinto
-    final otrosJugadores = List<String>.from(jugadores)..remove(jugadorPrincipal);
+    final otrosJugadores = List<String>.from(jugadores)
+      ..remove(jugadorPrincipal);
     final jugadorSecundario = otrosJugadores.isNotEmpty
         ? otrosJugadores[random.nextInt(otrosJugadores.length)]
         : jugadorPrincipal;
@@ -105,7 +115,7 @@ class _PantallaRetoState extends State<PantallaReto> {
       );
       shotsActual =
           random.nextInt(widget.rango[1] - widget.rango[0] + 1) +
-              widget.rango[0];
+          widget.rango[0];
       contadorRetos++;
     });
 
@@ -117,7 +127,9 @@ class _PantallaRetoState extends State<PantallaReto> {
         context: context,
         builder: (context) => AlertDialog(
           backgroundColor: fondoClaro,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
           title: const Text(
             '¡Castigo!',
             style: TextStyle(
@@ -159,7 +171,10 @@ class _PantallaRetoState extends State<PantallaReto> {
           children: [
             if (jugadorActual != null && retoActual != null)
               Container(
-                margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+                margin: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 20,
+                ),
                 padding: const EdgeInsets.all(20),
                 height: 250,
                 width: double.infinity, // 🔹 Más ancha
@@ -210,10 +225,13 @@ class _PantallaRetoState extends State<PantallaReto> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.deepPurple,
                 foregroundColor: Colors.white,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 30,
+                  vertical: 15,
+                ),
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(15)),
+                  borderRadius: BorderRadius.circular(15),
+                ),
               ),
               child: const Text(
                 "Generar Reto 🍹",
