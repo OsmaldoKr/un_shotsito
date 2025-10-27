@@ -8,13 +8,17 @@ class PantallaBienvenida extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: colorPrimario,
+      backgroundColor: fondoOscuro,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.local_drink, size: 100, color: Colors.amber),
-            const SizedBox(height: 20),
+            Image.asset(
+            "assets/images/logo_UnShotsito.png",
+            width: 800,
+            height: 600,
+            ),
+
             const Text(
               '¡Bienvenido a UnShotsito!',
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
@@ -25,9 +29,13 @@ class PantallaBienvenida extends StatelessWidget {
                 context,
                 MaterialPageRoute(builder: (_) => const PantallaJugadores()),
               ),
-              child: const Text('Empezar'),
+              child: const Text(
+                'Empezar',
+                style: TextStyle(
+                  color: colorSecundario,
+                )),
             ),
-            const SizedBox(height: 162),
+            const SizedBox(height: 50),
             const Text(
               'Creado por FratresPixel',
               style: TextStyle(
