@@ -24,67 +24,55 @@ class _PantallaRetoState extends State<PantallaReto> {
   final random = Random();
   String? jugadorActual;
   String? retoActual;
-  int? shotsActual;
-  int contadorRetos = 0; // 🔹 Controla cada cuántos retos aparece un castigo
+  int shotsActual = 0;
+  int contadorRetos = 0;
 
+  // Castigos dinámicos
   List<String> get castigos => [
-    "Los de pelo claro reparten $shotsActual shots.",
-    "El más callado del grupo bebe $shotsActual shots.",
-    "Los que traigan algo rojo reparten $shotsActual tragos.",
-    "Todos los que hayan dicho 'ya no tomo' hoy, tómense $shotsActual shots.",
-    "El más lento en levantar la mano se toma $shotsActual tragos.",
-    "¡A CAMBIAR! Cambia tu vaso con el jugador de la derecha.",
-    "Shot de boca a boca",
-    "El que vaya vestido todo de negro toma $shotsActual tragos, no es funeral pendejo.",
-    "Los que usen Android pueden repartir $shotsActual tragos.",
-    "Los que usen iPhone pueden repartir $shotsActual tragos.",
-    "El más desmadroso de los jugadores puede repartir $shotsActual shots.",
-  ];
+        "Los de pelo claro reparten $shotsActual shots.",
+        "El más callado del grupo bebe $shotsActual shots.",
+        "Los que traigan algo rojo reparten $shotsActual tragos.",
+        "Todos los que hayan dicho 'ya no tomo' hoy, tómense $shotsActual shots.",
+        "El más lento en levantar la mano se toma $shotsActual tragos.",
+        "Shot de boca a boca 🔥",
+        "El que vaya vestido todo de negro toma $shotsActual tragos.",
+        "Los que usen Android reparten $shotsActual tragos.",
+        "Los que usen iPhone reparten $shotsActual tragos.",
+        "El más desmadroso reparte $shotsActual shots.",
+        "Cada vez que alguien se ría, deberá beber 1 shot.",
+        "Si has tenido sexo en un carro, tómate $shotsActual shots.",
+      ];
 
   final Map<String, List<String>> retosPorModo = {
     'Pre': [
-      "cuenta un chiste malo o bebe 3 shots."
-      ],
-
+      "Name, cuenta un chiste malo.",
+      "Name, si alguno te ha invitado a tomar, agradécele y dale en la boca los tragos que quieras.",
+    ],
     'Pasaditos': [
-      "Name, di un fetiche de name, si name lo acepta, repartele 2 tragos, si no, bebetelos.",
-      "Name, hazle una pregunta en secreto a Name (por ejemplo, ¿Quién es el más guapo?) y debe señalar a la persona.",
-      "El último en darle un galletazo a Name se tiene que acabar su bebida.",
+      "Name, di un fetiche de Name; si Name lo acepta, repártele 2 tragos; si no, bébetelos.",
+      "Name, hazle una pregunta en secreto a Name y debe señalar a la persona.",
+      "El último en darle un galletazo a Name se acaba su bebida.",
     ],
-
-    'After': [
-      "Name, tómate un video mientras te fondeas tu bebida.",
-      "Si has tenido sexo en un carro, tómate 3 shots.",
-    ],
-
+    'After': ["Name, grábate mientras te fondeas tu bebida."],
     'Pareja': [
-      "Name y Name, bésense durante 5 segundos 😘",
-      "Name y Name, Bailen juntos 15 segundos 💃🕺",
+      "Name y Name, bésense 5 segundos.",
+      "Name y Name, bailen juntos 15 segundos",
     ],
-
     'Bar': [
-      "Haz que el bartender te recomiende un trago 🍸",
-      "Canta algo en voz alta 🎶",
+      "Haz que el bartender te recomiende un trago",
+      "Canta algo en voz alta",
     ],
-
     'Hot': [
-      "Name, comenta un emoji enamorado en la publicación de Instagram que Name te diga, o tómate 5 shots.",
+      "Name, comenta un emoji enamorado en la publicación que Name te diga, o tómate 5 shots.",
     ],
   };
 
-  /// Reemplaza los "Name" del texto por nombres coherentes
-  /// El primer "Name" -> jugador actual
-  /// Los siguientes -> un jugador aleatorio distinto
   String procesarRetoAvanzado(
-    String texto,
-    String jugadorPrincipal,
-    List<String> jugadores,
-  ) {
+      String texto, String jugadorPrincipal, List<String> jugadores) {
     if (!texto.contains("Name") && !texto.contains("name")) {
       return "$jugadorPrincipal, ${texto[0].toLowerCase()}${texto.substring(1)}";
     }
 
-    // Escoger jugador secundario distinto
     final otrosJugadores = List<String>.from(jugadores)
       ..remove(jugadorPrincipal);
     final jugadorSecundario = otrosJugadores.isNotEmpty
@@ -96,9 +84,9 @@ class _PantallaRetoState extends State<PantallaReto> {
     return texto.replaceAllMapped(exp, (match) {
       if (!reemplazoHecho) {
         reemplazoHecho = true;
-        return jugadorPrincipal; // primer Name → principal
+        return jugadorPrincipal;
       } else {
-        return jugadorSecundario; // demás → secundario
+        return jugadorSecundario;
       }
     });
   }
@@ -108,21 +96,18 @@ class _PantallaRetoState extends State<PantallaReto> {
 
     setState(() {
       jugadorActual = widget.jugadores[random.nextInt(widget.jugadores.length)];
+      shotsActual = random.nextInt(widget.rango[1] - widget.rango[0] + 1) +
+          widget.rango[0];
       retoActual = procesarRetoAvanzado(
         retos[random.nextInt(retos.length)],
         jugadorActual!,
         widget.jugadores,
       );
-      shotsActual =
-          random.nextInt(widget.rango[1] - widget.rango[0] + 1) +
-          widget.rango[0];
       contadorRetos++;
     });
 
-    // 🔹 Mostrar “castigo express” cada 5 o 6 retos
     if (contadorRetos % (5 + random.nextInt(2)) == 0) {
       if (!mounted) return;
-
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
@@ -132,11 +117,11 @@ class _PantallaRetoState extends State<PantallaReto> {
           ),
           title: const Text(
             '¡Castigo!',
+            textAlign: TextAlign.center,
             style: TextStyle(
               color: textoPrincipal,
               fontWeight: FontWeight.bold,
             ),
-            textAlign: TextAlign.center,
           ),
           content: Text(
             castigos[random.nextInt(castigos.length)],
@@ -158,9 +143,17 @@ class _PantallaRetoState extends State<PantallaReto> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      generarReto();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: colorSecundario,
+      backgroundColor: fondoOscuro,
       appBar: AppBar(
         title: const Text("Pantalla de Reto"),
         backgroundColor: colorPrimario,
@@ -171,72 +164,124 @@ class _PantallaRetoState extends State<PantallaReto> {
           children: [
             if (jugadorActual != null && retoActual != null)
               Container(
-                margin: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 20,
-                ),
+                margin:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
                 padding: const EdgeInsets.all(20),
-                height: 250,
-                width: double.infinity, // 🔹 Más ancha
+                height: MediaQuery.of(context).size.height * 0.3,
+                width: double.infinity,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(25),
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF7B1FA2), Color(0xFF9C27B0)],
+                  gradient: LinearGradient(
+                    colors: [colorSecundario, acentoDivertido],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: fondoOscuro.withAlpha(100),
+                      color: Colors.black.withAlpha(100),
                       blurRadius: 10,
                       offset: const Offset(0, 6),
                     ),
                   ],
                 ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const SizedBox(height: 5),
-                    Text(
-                      retoActual!,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 22,
-                        fontWeight: FontWeight.w500,
-                      ),
+                child: Center(
+                  child: Text(
+                    retoActual!,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      color: textoSecundario,
+                      fontSize: 22,
+                      fontWeight: FontWeight.w500,
                     ),
-                    if (shotsActual != null)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 15),
-                        child: Text(
-                          "Si no cumples son $shotsActual shots 🍻",
+                  ),
+                ),
+              ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                ElevatedButton.icon(
+                  onPressed: generarReto,
+                  icon: const Icon(Icons.check_circle, color: Colors.white),
+                  label: const Text(
+                    "Cumplió",
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: colorExito,
+                    foregroundColor: textoSecundario,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 25,
+                      vertical: 14,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    elevation: 6,
+                  ),
+                ),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    if (!mounted) return;
+                    showDialog(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        backgroundColor: fondoClaro,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        title: const Text(
+                          "Castigo Sorpresa",
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: textoPrincipal,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        content: Text(
+                          castigos[random.nextInt(castigos.length)],
+                          textAlign: TextAlign.center,
                           style: const TextStyle(
-                            color: Colors.amberAccent,
+                            color: textoPrincipal,
                             fontSize: 18,
                           ),
                         ),
+                        actions: [
+                          TextButton(
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                              generarReto();
+                            },
+                            child: const Text(
+                              "Continuar",
+                              style: TextStyle(color: textoPrincipal),
+                            ),
+                          ),
+                        ],
                       ),
-                  ],
+                    );
+                  },
+                  icon: const Icon(
+                    Icons.local_fire_department,
+                    color: Colors.white,
+                  ),
+                  label: const Text(
+                    "Castigo",
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: acentoDivertido,
+                    foregroundColor: textoSecundario,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 25,
+                      vertical: 14,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    elevation: 6,
+                  ),
                 ),
-              ),
-            ElevatedButton(
-              onPressed: generarReto,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.deepPurple,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 30,
-                  vertical: 15,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(15),
-                ),
-              ),
-              child: const Text(
-                "Generar Reto 🍹",
-                style: TextStyle(fontSize: 18),
-              ),
+              ],
             ),
           ],
         ),
