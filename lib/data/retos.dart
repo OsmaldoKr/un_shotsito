@@ -1,0 +1,72 @@
+final Map<String, List<String>> retosPorCategoria = {
+  'Pre': [
+    'Los foráneos toman 3 shot',
+    'Si fumas, tomate 3 shot',
+    'Los que usen android pueden repartir 2 tragos.',
+    'Los que usen iphone pueden repartir 2 tragos.',
+    'Los que traigan jeans puestos se toman 2 shot',
+    'Los de pelo claro reparten 3 shot',
+    'Los hombres sirven las bebidas hasta nuevo aviso.',
+    'Las mujeres sirven las bebidas hasta nuevo aviso',
+    'Los de pelo chino reparten 2 trago.',
+  ],
+
+  'Pasaditos': [
+    'Cada vez que alguien se ría, tendrá que beber 3 tragos.',
+    'El que va vestido todo de negro toma 3 tragos, no es funeral pendejo',
+    'Si te has despertado de la peda en un lugar que no sabias como llegaste, toma 5 shot',
+    'Tomate 5 shot si eres intolerante a la lactosa.',
+    'Los que se hayan ligado al ex de un amig@ que se tomen 3 shot',
+    'El ultimo que se haya peleado con su pareja se toma 3 shot',
+    'Si usas tiktok tomate 5 shot',
+    'Si no te gusta el olor del cigarro tomate 3 shot',
+    'A los que les haga falta una rasuradita, tómense 3 shot',
+    'Los amigos de la infancia, tómense 3 shot juntos',
+    'Eh, quien este leyendo esto, tomate 3 shot seguiditos.',
+    'Si cuando acabas de tener sexo, vas al baño y tomate 5 shot',
+  ],
+
+  'After': [
+    'El último en darle un galletazo a name se tiene que acabar su bebida.',
+    'Name, toma un trago de cada bebida de todos.',
+    'Name, se toma un video mientras name se fondea su bebida',
+    'Name, sube una historia con el celular de name a close friends que diga o tenga lo que quieras.',
+    'Name, ahora puedes escoger si borrarla o darle 10 shot en la boca a name.',
+    'Name, toma 5 shot sin usar las manos.',
+    'Name, dale todo lo que queda de su bebida en la boca a name.',
+    'Name, jalale los pelos a name mientras tomas de tu bebida, cuando name ya no pueda, paras.',
+    'Name, comenta un emoji enamorado en la publicación de Instagram que name te diga, o tomate 5 shot',
+    'Name, si alguno de los jugadores te ha invitado a tomar, agradéceles y dales en la boca los tragos que quieras de tu bebida.',
+    'Name, toma tantos shot como puedas, tambien se los tendrá que tomar la persona de la derecha.',
+  ],
+
+  'Pareja': [
+    'Name, que es lo peor que has hecho por amor? 1 shot por pendejo',
+    'Si has tenido sexo en el carro tomate 3 shot',
+    'Los que dejan abajo a sus compas por sus parejas, 5 shot.',
+    'Name, bebe en shot el número de ex´s que tengas  ( Contando los casi algo también ).',
+    'Name, di un fetiche de name, si name lo acepta, repartele 2 tragos, si no, bebetelos.',
+    'Name, Si te has besado con una persona de tu mismo sexo toma 3',
+    'Name, Si te has besado con alguien, tomas 3 shot',
+    'Name, Si te has dado con alguien del grupo, toma 2 shot',
+  ],
+
+  'Bar': [
+    'Name, sirve un vaso que reemplazara la bebida de name hasta que se la acabe',
+    'Name, si le has prestado ropa a alguno de los jugadores, hazlo beber 3 shot',
+    'El primero en aventarle algo a name, reparte 4 shot',
+    'Escojan a la persona más inteligente, que tendrá que acabarse su bebida.',
+    'Name, escoge que jugador tiene los zapatos que parecen más baratos, tendra que tomarse 3 shot',
+    'Name, sube una historia que diga " mándame mensaje si estas caliente" o fondeate la mitad de tu bebida.',
+    'El que saque un bilete de mayor valor… puede escoger darselo a un jugador o fondearse su bebida.',
+    'Name, sirvele un poco de alcohol a las copas de todos',
+  ],
+
+  'Hot': [
+    'Name, hazle una pregunta en secreto a name (por ejemplo, Quien es el más guapo?), y tiene que señalar a la persona…',
+    'Ahora name, reta a name a piedra papel o tijeras, si ganas, tendrás que decir la pregunta que le hiciste',
+    'Name, deja que name te eche un hielo en la espalda o tomate 6 tragos.',
+    'Name, dale dos tragos en la boca a name.',
+    'El más desmadroso de los jugadores puede repartir 3 shot',
+  ],
+};

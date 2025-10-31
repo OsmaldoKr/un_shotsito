@@ -74,7 +74,7 @@ class _PantallaBienvenidaState extends State<PantallaBienvenida>
                     child: Column(
                       children: [
                         const Text(
-                          '¡Bienvenido a UnShotsito! 🍻',
+                          '¡Bienvenido a UnShotsito!',
                           style: TextStyle(
                             fontSize: 28,
                             fontWeight: FontWeight.bold,
