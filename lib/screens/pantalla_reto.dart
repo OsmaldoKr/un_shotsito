@@ -7,6 +7,7 @@ import '../utils/procesadores_texto.dart';
 import '../widgets/tarjeta_reto.dart';
 import '../widgets/modal_castigo.dart';
 import '../widgets/modal_reto_especial.dart';
+import '../widgets/modal_reto_completado.dart'; // ← NUEVO IMPORT
 import '../widgets/icono_reto_especial.dart';
 
 class PantallaReto extends StatefulWidget {
@@ -38,6 +39,7 @@ class _PantallaRetoState extends State<PantallaReto>
   List<RetoEspecial> retosEspecialesActivos = [];
   RetoEspecial? retoEspecialExpandido;
   RetoEspecial? retoEspecialPendiente;
+  String? retoCompletadoDescripcion; // ← NUEVO
   int contadorTurnos = 0;
 
   late AnimationController _animationController;
@@ -76,14 +78,34 @@ class _PantallaRetoState extends State<PantallaReto>
     _animationController.value = 1.0;
   }
 
+  // ← FUNCIÓN ACTUALIZADA
   void _actualizarRetosEspeciales() {
+    List<RetoEspecial> retosActualizados = [];
+    List<RetoEspecial> retosCompletados = [];
+
+    for (var reto in retosEspecialesActivos) {
+      final retoActualizado = reto.copyWith(
+        turnosRestantes: reto.turnosRestantes - 1,
+      );
+
+      if (retoActualizado.activo) {
+        retosActualizados.add(retoActualizado);
+      } else {
+        retosCompletados.add(reto);
+      }
+    }
+
     setState(() {
-      retosEspecialesActivos = retosEspecialesActivos
-          .map((reto) =>
-              reto.copyWith(turnosRestantes: reto.turnosRestantes - 1))
-          .where((reto) => reto.activo)
-          .toList();
+      retosEspecialesActivos = retosActualizados;
     });
+
+    // Mostrar notificación para cada reto completado
+    if (retosCompletados.isNotEmpty) {
+      // Mostrar el primero
+      setState(() {
+        retoCompletadoDescripcion = retosCompletados.first.descripcion;
+      });
+    }
   }
 
   void _agregarRetoEspecial() {
@@ -324,6 +346,14 @@ class _PantallaRetoState extends State<PantallaReto>
                     reto: retoEspecialExpandido!,
                     onCerrar: () =>
                         setState(() => retoEspecialExpandido = null),
+                  ),
+
+                // ← NUEVO MODAL DE RETO COMPLETADO
+                if (retoCompletadoDescripcion != null)
+                  ModalRetoCompletado(
+                    descripcionReto: retoCompletadoDescripcion!,
+                    onCerrar: () =>
+                        setState(() => retoCompletadoDescripcion = null),
                   ),
               ],
             ),
