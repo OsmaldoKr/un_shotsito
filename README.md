@@ -1,8 +1,8 @@
-# UnShotsito 🍻
+# un_shotsito 🍻
 
-¡Bienvenido a **UnShotsito**! 🎉  
+¡Bienvenido a **un_shotsito**! 🎉  
 
-UnShotsito es una divertida aplicación de juegos de shots para fiestas y reuniones con amigos. La app permite agregar jugadores, seleccionar modos y tipos de juego, y seguir retos aleatorios para pasar un buen rato.  
+un_shotsito es una divertida aplicación de juegos de shots para fiestas y reuniones con amigos. La app permite agregar jugadores, seleccionar modos y tipos de juego, y seguir retos aleatorios para pasar un buen rato.  
 
 ---
 

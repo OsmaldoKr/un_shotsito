@@ -17,7 +17,13 @@ class _PantallaJugadoresState extends State<PantallaJugadores> {
   final random = Random();
 
   Color obtenerColorAleatorio() {
-    final colores = [colorPrimario, colorSecundario, colorExito, acentoDivertido];
+    final colores = [
+      colorSecundario,
+      colorExito,
+      acentoDivertido,
+      moradoSuave,
+      azulFrio,
+    ];
     return colores[random.nextInt(colores.length)];
   }
 
@@ -78,16 +84,21 @@ class _PantallaJugadoresState extends State<PantallaJugadores> {
                         hintStyle: const TextStyle(color: Colors.white54),
                         border: InputBorder.none,
                         contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 14),
+                          horizontal: 16,
+                          vertical: 14,
+                        ),
                         suffixIcon: IconButton(
-                          icon:
-                              const Icon(Icons.person_add, color: acentoDivertido),
+                          icon: const Icon(
+                            Icons.person_add,
+                            color: acentoDivertido,
+                          ),
                           onPressed: () {
                             if (_controller.text.trim().isNotEmpty) {
                               final nombre = _controller.text.trim();
                               setState(() {
                                 jugadores.add(nombre);
-                                coloresJugadores[nombre] = obtenerColorAleatorio();
+                                coloresJugadores[nombre] =
+                                    obtenerColorAleatorio();
                                 _controller.clear();
                               });
                             }
@@ -105,8 +116,10 @@ class _PantallaJugadoresState extends State<PantallaJugadores> {
                         ? const Center(
                             child: Text(
                               "Aún no hay jugadores",
-                              style:
-                                  TextStyle(color: Colors.white54, fontSize: 16),
+                              style: TextStyle(
+                                color: Colors.white54,
+                                fontSize: 16,
+                              ),
                             ),
                           )
                         : SingleChildScrollView(
@@ -115,12 +128,15 @@ class _PantallaJugadoresState extends State<PantallaJugadores> {
                               runSpacing: 10,
                               alignment: WrapAlignment.center,
                               children: jugadores.map((nombre) {
-                                final colorJugador = coloresJugadores[nombre] ??
+                                final colorJugador =
+                                    coloresJugadores[nombre] ??
                                     obtenerColorAleatorio();
 
                                 return Container(
                                   padding: const EdgeInsets.symmetric(
-                                      horizontal: 16, vertical: 10),
+                                    horizontal: 16,
+                                    vertical: 10,
+                                  ),
                                   decoration: BoxDecoration(
                                     color: colorJugador,
                                     borderRadius: BorderRadius.circular(25),
@@ -135,8 +151,11 @@ class _PantallaJugadoresState extends State<PantallaJugadores> {
                                   child: Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      const Icon(Icons.person,
-                                          color: Colors.white, size: 20),
+                                      const Icon(
+                                        Icons.person,
+                                        color: Colors.white,
+                                        size: 20,
+                                      ),
                                       const SizedBox(width: 8),
                                       Text(
                                         nombre,
@@ -154,8 +173,11 @@ class _PantallaJugadoresState extends State<PantallaJugadores> {
                                             coloresJugadores.remove(nombre);
                                           });
                                         },
-                                        child: const Icon(Icons.close,
-                                            color: Colors.white, size: 18),
+                                        child: const Icon(
+                                          Icons.close,
+                                          color: Colors.white,
+                                          size: 18,
+                                        ),
                                       ),
                                     ],
                                   ),
@@ -181,19 +203,24 @@ class _PantallaJugadoresState extends State<PantallaJugadores> {
                             );
                           },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor:
-                          jugadores.isEmpty ? Colors.grey : colorSecundario,
+                      backgroundColor: jugadores.isEmpty
+                          ? Colors.grey
+                          : colorSecundario,
                       foregroundColor: textoPrincipal,
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 50, vertical: 16),
+                        horizontal: 50,
+                        vertical: 16,
+                      ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(15),
                       ),
                     ),
                     child: const Text(
                       'Siguiente',
-                      style:
-                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ],
@@ -213,8 +240,10 @@ class CurvaHeader extends CustomClipper<Path> {
     final path = Path();
     path.lineTo(0, size.height - 50);
     path.quadraticBezierTo(
-      size.width / 2, size.height, // punto medio del arco
-      size.width, size.height - 50, // final del arco
+      size.width / 2,
+      size.height, // punto medio del arco
+      size.width,
+      size.height - 50, // final del arco
     );
     path.lineTo(size.width, 0);
     path.close();

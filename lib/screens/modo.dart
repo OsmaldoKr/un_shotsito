@@ -54,7 +54,7 @@ class _PantallaModoState extends State<PantallaModo> {
               color: colorPrimario,
               child: const Center(
                 child: Text(
-                  "Selecciona el modo de Shots 🍻",
+                  "Selecciona el modo de Shots",
                   style: TextStyle(
                     color: textoPrincipal,
                     fontSize: 24,
@@ -77,15 +77,15 @@ class _PantallaModoState extends State<PantallaModo> {
                       itemCount: infoModos.length,
                       itemBuilder: (context, index) {
                         final modo = infoModos[index];
-                        final seleccionado =
-                            modoSeleccionado == modo['titulo'];
+                        final seleccionado = modoSeleccionado == modo['titulo'];
 
                         // ✅ Convertimos a Color de forma segura
                         final colorBase = modo['color'] as Color;
 
                         return GestureDetector(
-                          onTap: () =>
-                              setState(() => modoSeleccionado = modo['titulo'] as String),
+                          onTap: () => setState(
+                            () => modoSeleccionado = modo['titulo'] as String,
+                          ),
                           child: AnimatedContainer(
                             duration: const Duration(milliseconds: 250),
                             curve: Curves.easeInOut,
@@ -170,7 +170,9 @@ class _PantallaModoState extends State<PantallaModo> {
                           : acentoDivertido,
                       foregroundColor: fondoOscuro,
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 50, vertical: 16),
+                        horizontal: 50,
+                        vertical: 16,
+                      ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(15),
                       ),

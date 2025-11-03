@@ -107,7 +107,10 @@ class PantallaTipoJuego extends StatelessWidget {
                   ),
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 300),
-                    margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 30),
+                    margin: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 30,
+                    ),
                     height: alturaPantalla * 0.7,
                     decoration: BoxDecoration(
                       color: tipo['color'], // 🔸 Color sólido del theme
