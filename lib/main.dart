@@ -14,15 +14,20 @@ class UnShotsitoApp extends StatelessWidget {
     return MaterialApp(
       title: 'UnShotsito',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData.dark().copyWith(
-        scaffoldBackgroundColor: fondoOscuro,
-        colorScheme: ColorScheme.dark(
-          primary: colorPrimario,
-          secondary: colorSecundario,
+      theme: ThemeData.light().copyWith(  // ✅ Cambiado a LIGHT theme
+        scaffoldBackgroundColor: colorPrimario,  // Crema fiesta cálida
+        colorScheme: ColorScheme.light(
+          primary: colorSecundario,     // Naranja shots energética
+          secondary: acentoDivertido,   // Fucsia fiesta
         ),
         textTheme: const TextTheme(
-          bodyLarge: TextStyle(color: textoSecundario),
-          bodyMedium: TextStyle(color: Colors.white70),
+          bodyLarge: TextStyle(color: textoPrincipal),  // Negro suave
+          bodyMedium: TextStyle(color: textoSecundario), // Gris oscuro
+        ),
+        appBarTheme: const AppBarTheme(
+          backgroundColor: colorSecundario,
+          foregroundColor: textoPrincipal,
+          elevation: 0,
         ),
       ),
       home: const PantallaSplash(),
@@ -88,8 +93,8 @@ class _PantallaSplashState extends State<PantallaSplash>
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              colorPrimario, // Gris Mapache
-              fondoOscuro,   // Gris Nocturno
+              colorPrimario,        // Crema fiesta cálida ✅
+              fondoClaro,           // Blanco puro ✅
             ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
@@ -106,7 +111,7 @@ class _PantallaSplashState extends State<PantallaSplash>
                   style: TextStyle(
                     fontSize: 34,
                     fontWeight: FontWeight.bold,
-                    color: textoSecundario,
+                    color: colorSecundario,  // Naranja shots energética ✅
                     letterSpacing: 1.4,
                   ),
                 ),
@@ -117,17 +122,18 @@ class _PantallaSplashState extends State<PantallaSplash>
                   'Donde los retos... ¡se ponen buenos!',
                   style: TextStyle(
                     fontSize: 16,
-                    color: Colors.white70,
+                    color: textoSecundario,  // Gris oscuro ✅
                     fontStyle: FontStyle.italic,
                   ),
                 ),
 
                 const SizedBox(height: 40),
 
-                // 🍸 Indicador de carga con color de acento sólido
-                const CircularProgressIndicator(
-                  color: colorSecundario, // Rosa mejilla de la paleta
-                  strokeWidth: 3,
+                // 🍸 Indicador de carga vibrante
+                CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation(colorSecundario),  // Naranja shots
+                  strokeWidth: 4,  // Más grueso para impacto
+                  backgroundColor: colorExito.withAlpha(102),  // Verde lima sutil
                 ),
               ],
             ),

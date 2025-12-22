@@ -1,4 +1,4 @@
-package com.example.un_shotsito
+package com.fratrespixel.unshotsito
 
 import io.flutter.embedding.android.FlutterActivity
 

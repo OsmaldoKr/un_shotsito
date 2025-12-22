@@ -42,7 +42,7 @@ class ModalRetoEspecial extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       const Text(
-                        "🔥 RETO ESPECIAL 🔥",
+                        "RETO ESPECIAL",
                         style: TextStyle(
                           fontSize: 20,
                           color: Colors.black87,

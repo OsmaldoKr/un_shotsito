@@ -19,126 +19,230 @@ class _PantallaModoState extends State<PantallaModo> {
     'Piruca': [1, 5],
   };
 
-  final List<Map<String, Object>> infoModos = const [
+  final List<Map<String, dynamic>> infoModos = const [
     {
       'titulo': 'Leve',
       'descripcion': 'Ideal para empezar tranqui',
-      'color': colorExito,
-      'icono': Icons.spa,
+      'colorPrimario': Color(0xFFFF9800),  // shotsNaranja
+      'colorSecundario': Color(0xFFCDDC39), // limaParty
+      'icono': Icons.spa_rounded,
     },
     {
       'titulo': 'Normal',
-      'descripcion': 'El punto justo entre risas y caos',
-      'color': colorSecundario,
-      'icono': Icons.local_drink,
+      'descripcion': 'El punto justo entre risas',
+      'colorPrimario': Color(0xFFE91E63),  // fucsiaFiesta
+      'colorSecundario': Color(0xFF00BCD4), // turquesaFiesta
+      'icono': Icons.local_drink_rounded,
     },
     {
       'titulo': 'Piruca',
       'descripcion': 'Solo para los valientes sin retorno',
-      'color': acentoDivertido,
-      'icono': Icons.local_fire_department,
+      'colorPrimario': Color(0xFFF44336),  // rojoCocktail
+      'colorSecundario': Color(0xFF9C27B0), // violetaParty
+      'icono': Icons.local_fire_department_rounded,
     },
   ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: fondoOscuro,
+      backgroundColor: colorPrimario,
       body: Column(
         children: [
-          // 🔹 Encabezado moderno curvo
           ClipPath(
             clipper: CurvaHeader(),
             child: Container(
-              height: 180,
-              color: colorPrimario,
+              height: 200,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    colorSecundario,
+                    acentoDivertido,
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+              ),
               child: const Center(
-                child: Text(
-                  "Selecciona el modo de Shots",
-                  style: TextStyle(
-                    color: textoPrincipal,
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 20),
+                  child: Text(
+                    "¡Elige tu nivel de shots!",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 26,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 0.5,
+                      shadows: [
+                        Shadow(
+                          color: Colors.black54,
+                          offset: Offset(0, 2),
+                          blurRadius: 6,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
             ),
           ),
 
-          // 🔹 Lista de modos
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(20),
               child: Column(
                 children: [
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 16),
                   Expanded(
                     child: ListView.builder(
                       itemCount: infoModos.length,
                       itemBuilder: (context, index) {
                         final modo = infoModos[index];
                         final seleccionado = modoSeleccionado == modo['titulo'];
-
-                        // ✅ Convertimos a Color de forma segura
-                        final colorBase = modo['color'] as Color;
+                        final colorPrimario = modo['colorPrimario'] as Color;
+                        final colorSecundario = modo['colorSecundario'] as Color;
 
                         return GestureDetector(
                           onTap: () => setState(
                             () => modoSeleccionado = modo['titulo'] as String,
                           ),
                           child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 250),
-                            curve: Curves.easeInOut,
-                            margin: const EdgeInsets.only(bottom: 16),
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.elasticOut,
+                            margin: const EdgeInsets.only(bottom: 20),
+                            height: 140,
                             decoration: BoxDecoration(
-                              color: colorBase,
-                              borderRadius: BorderRadius.circular(20),
+                              borderRadius: BorderRadius.circular(24),
                               boxShadow: [
                                 BoxShadow(
-                                  color: colorBase.withAlpha(60),
-                                  blurRadius: 8,
+                                  color: colorPrimario.withAlpha(102),
+                                  blurRadius: 20,
+                                  offset: const Offset(0, 12),
+                                ),
+                                BoxShadow(
+                                  color: textoPrincipal.withAlpha(77),
+                                  blurRadius: 10,
                                   offset: const Offset(0, 4),
                                 ),
                               ],
                               border: seleccionado
-                                  ? Border.all(color: textoPrincipal, width: 3)
+                                  ? Border.all(color: Colors.white, width: 4)
                                   : null,
                             ),
-                            child: ListTile(
-                              contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 20,
-                                vertical: 16,
-                              ),
-                              leading: CircleAvatar(
-                                backgroundColor: Colors.white.withAlpha(40),
-                                radius: 28,
-                                child: Icon(
-                                  modo['icono'] as IconData,
-                                  color: textoPrincipal,
-                                  size: 28,
-                                ),
-                              ),
-                              title: Text(
-                                modo['titulo'] as String,
-                                style: const TextStyle(
-                                  color: textoPrincipal,
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              subtitle: Text(
-                                modo['descripcion'] as String,
-                                style: TextStyle(
-                                  color: textoPrincipal.withAlpha(200),
-                                  fontSize: 18,
-                                ),
-                              ),
-                              trailing: Icon(
-                                seleccionado
-                                    ? Icons.check_circle
-                                    : Icons.circle_outlined,
-                                color: textoPrincipal,
-                                size: 30,
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(24),
+                              child: Stack(
+                                children: [
+                                  // Gradiente vibrante
+                                  Container(
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(
+                                        begin: Alignment.topLeft,
+                                        end: Alignment.bottomRight,
+                                        colors: [colorPrimario, colorSecundario],
+                                      ),
+                                    ),
+                                  ),
+                                  // Overlay para texto
+                                  Container(
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(
+                                        begin: Alignment.topCenter,
+                                        end: Alignment.bottomCenter,
+                                        colors: [
+                                          Colors.transparent,
+                                          Colors.black.withAlpha(153),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                  // Contenido
+                                  Padding(
+                                    padding: const EdgeInsets.all(24),
+                                    child: Row(
+                                      children: [
+                                        // Icono grande
+                                        Container(
+                                          width: 70,
+                                          height: 70,
+                                          decoration: BoxDecoration(
+                                            color: Colors.white.withAlpha(77),
+                                            shape: BoxShape.circle,
+                                            border: Border.all(
+                                              color: Colors.white.withAlpha(153),
+                                              width: 2,
+                                            ),
+                                          ),
+                                          child: Icon(
+                                            modo['icono'] as IconData,
+                                            color: Colors.white,
+                                            size: 32,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 20),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            children: [
+                                              Text(
+                                                modo['titulo'] as String,
+                                                style: const TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 28,
+                                                  fontWeight: FontWeight.w900,
+                                                  letterSpacing: 1.0,
+                                                  shadows: [
+                                                    Shadow(
+                                                      color: Colors.black87,
+                                                      offset: Offset(0, 2),
+                                                      blurRadius: 4,
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                              const SizedBox(height: 4),
+                                              Text(
+                                                modo['descripcion'] as String,
+                                                style: TextStyle(
+                                                  color: Colors.white.withAlpha(230),
+                                                  fontSize: 17,
+                                                  fontWeight: FontWeight.w600,
+                                                  height: 1.4,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        // Check animado
+                                        AnimatedContainer(
+                                          duration: const Duration(milliseconds: 300),
+                                          padding: const EdgeInsets.all(12),
+                                          decoration: BoxDecoration(
+                                            color: seleccionado 
+                                                ? Colors.white 
+                                                : Colors.transparent,
+                                            shape: BoxShape.circle,
+                                            border: Border.all(
+                                              color: Colors.white.withAlpha(153),
+                                              width: 2,
+                                            ),
+                                          ),
+                                          child: Icon(
+                                            seleccionado
+                                                ? Icons.check_rounded
+                                                : Icons.radio_button_unchecked_rounded,
+                                            color: seleccionado 
+                                                ? colorPrimario 
+                                                : Colors.white.withAlpha(153),
+                                            size: 28,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ),
@@ -147,42 +251,46 @@ class _PantallaModoState extends State<PantallaModo> {
                     ),
                   ),
 
-                  // 🔹 Botón continuar
-                  const SizedBox(height: 8),
-                  ElevatedButton(
-                    onPressed: modoSeleccionado == null
-                        ? null
-                        : () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => PantallaTipoJuego(
-                                  jugadores: widget.jugadores,
-                                  modo: modoSeleccionado!,
-                                  rango: modos[modoSeleccionado!]!,
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 60,
+                    child: ElevatedButton(
+                      onPressed: modoSeleccionado == null
+                          ? null
+                          : () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => PantallaTipoJuego(
+                                    jugadores: widget.jugadores,
+                                    modo: modoSeleccionado!,
+                                    rango: modos[modoSeleccionado!]!,
+                                  ),
                                 ),
-                              ),
-                            );
-                          },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: modoSeleccionado == null
-                          ? Colors.grey
-                          : acentoDivertido,
-                      foregroundColor: fondoOscuro,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 50,
-                        vertical: 16,
+                              );
+                            },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: modoSeleccionado == null
+                            ? textoSecundario.withAlpha(128)
+                            : colorSecundario,
+                        foregroundColor: textoPrincipal,
+                        padding: EdgeInsets.zero,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(25),
+                        ),
+                        elevation: modoSeleccionado == null ? 0 : 12,
+                        shadowColor: colorSecundario.withAlpha(153),
                       ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(15),
-                      ),
-                      elevation: 6,
-                    ),
-                    child: const Text(
-                      'Siguiente',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
+                      child: Text(
+                        modoSeleccionado == null 
+                            ? 'Elige un modo' 
+                            : 'Siguiente',
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 0.5,
+                        ),
                       ),
                     ),
                   ),
@@ -196,17 +304,16 @@ class _PantallaModoState extends State<PantallaModo> {
   }
 }
 
-/// 🔹 Curva decorativa del encabezado
 class CurvaHeader extends CustomClipper<Path> {
   @override
   Path getClip(Size size) {
     final path = Path();
-    path.lineTo(0, size.height - 50);
+    path.lineTo(0, size.height - 60);
     path.quadraticBezierTo(
       size.width / 2,
-      size.height,
+      size.height + 20,
       size.width,
-      size.height - 50,
+      size.height - 60,
     );
     path.lineTo(size.width, 0);
     path.close();

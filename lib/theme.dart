@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
 
-// Colores principales
-const Color colorPrimario = Color(0xFF2C2C2E); // Gris mapache, fondo principal
-const Color colorSecundario = Color(0xFFE91E63); // Rosa mejilla
-const Color colorExito = Color(0xFF4CAF50); // Verde lima
-const Color acentoDivertido = Color(0xFFD32F2F); // Rojo fiesta
-const Color fondoOscuro = Color(0xFF1C1C1E); // Gris muy oscuro
-const Color fondoClaro = Color(0xFF2C2C2E); // Gris oscuro para dialogos
-const Color textoPrincipal = Color(0xFFFFFFFF); // Blanco para textos principales
-const Color textoSecundario = Color(0xFFE0E0E0); // Gris claro para subtítulos
+const Color colorPrimario = Color(0xFFFFF3E0);     // Crema fiesta cálida (fondo principal)
+const Color colorSecundario = Color(0xFFFF5722);  // Naranja shots energética
+const Color colorExito = Color(0xFF4CAF50);       // Verde lima (éxito/juego)
+const Color acentoDivertido = Color(0xFFE91E63);  // Rosa fucsia (diversión máxima)
+const Color fondoOscuro = Color(0xFFFFF8F0);      // Beige claro (tarjetas sutiles)
+const Color fondoClaro = Color(0xFFFFFFFF);       // Blanco puro (modales/dialogos)
+const Color textoPrincipal = Color(0xFF1A1A1A);   // Negro suave (textos principales)
+const Color textoSecundario = Color(0xFF424242);  // Gris oscuro (subtítulos)
 
-// Paleta adicional para tarjetas / degradados si quieres combinaciones
-const Color azulFrio = Color(0xFF1976D2);
-const Color moradoSuave = Color(0xFF7B1FA2);
-const Color moradoFuerte = Color(0xFF9C27B0);
-const Color rojoOscuro = Color(0xFFC2185B);
-const Color verdeOscuro = Color(0xFF388E3C);
-const Color grisMedio = Color(0xFF616161);
+// 🔥 Paleta fiesta para tarjetas y gradientes
+const Color shotsNaranja = Color(0xFFFF9800);     // Naranja shots vibrante
+const Color limaParty = Color(0xFFCDDC39);        // Lima fiesta brillante
+const Color fucsiaFiesta = Color(0xFFE91E63);     // Fucsia pura energética
+const Color turquesaFiesta = Color(0xFF00BCD4);   // Turquesa refrescante
+const Color violetaParty = Color(0xFF9C27B0);     // Violeta coqueta
+const Color rojoCocktail = Color(0xFFF44336);     // Rojo cóctel intenso
+const Color amarilloBrillante = Color(0xFFFFEB3B); // Amarillo fiesta radiante

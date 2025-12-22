@@ -7,7 +7,7 @@ import '../utils/procesadores_texto.dart';
 import '../widgets/tarjeta_reto.dart';
 import '../widgets/modal_castigo.dart';
 import '../widgets/modal_reto_especial.dart';
-import '../widgets/modal_reto_completado.dart'; // ← NUEVO IMPORT
+import '../widgets/modal_reto_completado.dart';
 import '../widgets/icono_reto_especial.dart';
 
 class PantallaReto extends StatefulWidget {
@@ -39,7 +39,7 @@ class _PantallaRetoState extends State<PantallaReto>
   List<RetoEspecial> retosEspecialesActivos = [];
   RetoEspecial? retoEspecialExpandido;
   RetoEspecial? retoEspecialPendiente;
-  String? retoCompletadoDescripcion; // ← NUEVO
+  String? retoCompletadoDescripcion;
   int contadorTurnos = 0;
 
   late AnimationController _animationController;
@@ -78,7 +78,6 @@ class _PantallaRetoState extends State<PantallaReto>
     _animationController.value = 1.0;
   }
 
-  // ← FUNCIÓN ACTUALIZADA
   void _actualizarRetosEspeciales() {
     List<RetoEspecial> retosActualizados = [];
     List<RetoEspecial> retosCompletados = [];
@@ -99,9 +98,7 @@ class _PantallaRetoState extends State<PantallaReto>
       retosEspecialesActivos = retosActualizados;
     });
 
-    // Mostrar notificación para cada reto completado
     if (retosCompletados.isNotEmpty) {
-      // Mostrar el primero
       setState(() {
         retoCompletadoDescripcion = retosCompletados.first.descripcion;
       });
@@ -189,27 +186,49 @@ class _PantallaRetoState extends State<PantallaReto>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: fondoOscuro,
+      backgroundColor: colorPrimario,  // ✅ Crema fiesta cálida
       body: Column(
         children: [
-          // Header
+          // 🎉 Header fiesta gradiente
           Container(
             width: double.infinity,
             padding: const EdgeInsets.only(top: 50, bottom: 20),
-            decoration: const BoxDecoration(
-              color: fondoClaro,
-              borderRadius: BorderRadius.only(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  colorSecundario,     // Naranja shots ✅
+                  acentoDivertido,     // Fucsia fiesta ✅
+                ],
+              ),
+              borderRadius: const BorderRadius.only(
                 bottomLeft: Radius.circular(40),
                 bottomRight: Radius.circular(40),
               ),
+              boxShadow: [
+                BoxShadow(
+                  color: colorSecundario.withAlpha(102),
+                  blurRadius: 20,
+                  offset: const Offset(0, 8),
+                ),
+              ],
             ),
             child: Center(
               child: Text(
                 widget.tipo,
                 style: const TextStyle(
-                  color: textoPrincipal,
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                  fontSize: 28,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 1.0,
+                  shadows: [
+                    Shadow(
+                      color: Colors.black54,
+                      offset: Offset(0, 2),
+                      blurRadius: 6,
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -220,11 +239,11 @@ class _PantallaRetoState extends State<PantallaReto>
             child: Stack(
               children: [
                 Padding(
-                  padding: const EdgeInsets.all(20),
+                  padding: const EdgeInsets.all(24),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      // Tarjeta de reto
+                      // 🎮 Tarjeta de reto principal
                       Expanded(
                         child: Stack(
                           children: [
@@ -236,7 +255,7 @@ class _PantallaRetoState extends State<PantallaReto>
                               ),
                             ),
                             
-                            // Íconos de retos especiales activos
+                            // ✨ Íconos retos especiales activos
                             if (retosEspecialesActivos.isNotEmpty)
                               Positioned(
                                 top: 8,
@@ -256,28 +275,31 @@ class _PantallaRetoState extends State<PantallaReto>
                         ),
                       ),
                       
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 32),
                       
-                      // Botones
+                      // 🚀 Botones fiesta vibrantes
                       if (retoEspecialPendiente != null)
-                        ElevatedButton(
-                          onPressed: _aceptarRetoEspecial,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.white,
-                            foregroundColor: const Color(0xFFFF9800),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 60,
-                              vertical: 18,
+                        SizedBox(
+                          width: double.infinity,
+                          height: 60,
+                          child: ElevatedButton(
+                            onPressed: _aceptarRetoEspecial,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.white,
+                              foregroundColor: colorSecundario,  // Naranja shots ✅
+                              padding: EdgeInsets.zero,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(25),
+                              ),
+                              elevation: 12,
+                              shadowColor: colorSecundario.withAlpha(153),
                             ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(15),
-                            ),
-                          ),
-                          child: const Text(
-                            "Aceptar Reto",
-                            style: TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.bold,
+                            child: const Text(
+                              "¡Aceptar Reto Especial!",
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.w800,
+                              ),
                             ),
                           ),
                         )
@@ -285,43 +307,53 @@ class _PantallaRetoState extends State<PantallaReto>
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
-                            ElevatedButton(
-                              onPressed: () => completarReto(cumplio: true),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: colorExito,
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 40,
-                                  vertical: 16,
+                            // ✅ Cumplí - Verde lima fiesta
+                            SizedBox(
+                              width: 140,
+                              height: 60,
+                              child: ElevatedButton(
+                                onPressed: () => completarReto(cumplio: true),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: colorExito,     // Verde lima ✅
+                                  foregroundColor: textoPrincipal, // Negro suave ✅
+                                  padding: EdgeInsets.zero,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(25),
+                                  ),
+                                  elevation: 8,
+                                  shadowColor: colorExito.withAlpha(153),
                                 ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(15),
-                                ),
-                              ),
-                              child: const Text(
-                                "Cumplí",
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  color: textoPrincipal,
+                                child: const Text(
+                                  "¡Cumplí!",
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w800,
+                                  ),
                                 ),
                               ),
                             ),
-                            ElevatedButton(
-                              onPressed: mostrarCastigo,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: acentoDivertido,
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 40,
-                                  vertical: 16,
+                            // ❌ Castigo - Fucsia intenso
+                            SizedBox(
+                              width: 140,
+                              height: 60,
+                              child: ElevatedButton(
+                                onPressed: mostrarCastigo,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: acentoDivertido, // Fucsia fiesta ✅
+                                  foregroundColor: textoPrincipal,  // Negro suave ✅
+                                  padding: EdgeInsets.zero,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(25),
+                                  ),
+                                  elevation: 8,
+                                  shadowColor: acentoDivertido.withAlpha(153),
                                 ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(15),
-                                ),
-                              ),
-                              child: const Text(
-                                "Castigo",
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  color: textoPrincipal,
+                                child: const Text(
+                                  "¡Castigo!",
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w800,
+                                  ),
                                 ),
                               ),
                             ),
@@ -331,7 +363,7 @@ class _PantallaRetoState extends State<PantallaReto>
                   ),
                 ),
 
-                // Modales
+                // 🌟 Modales fiesta
                 if (mostrandoCastigo)
                   ModalCastigo(
                     textoCastigo: textoCastigo,
@@ -348,7 +380,6 @@ class _PantallaRetoState extends State<PantallaReto>
                         setState(() => retoEspecialExpandido = null),
                   ),
 
-                // ← NUEVO MODAL DE RETO COMPLETADO
                 if (retoCompletadoDescripcion != null)
                   ModalRetoCompletado(
                     descripcionReto: retoCompletadoDescripcion!,

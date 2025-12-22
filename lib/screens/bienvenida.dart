@@ -12,10 +12,10 @@ class PantallaBienvenida extends StatefulWidget {
 class _PantallaBienvenidaState extends State<PantallaBienvenida>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
-  late Animation<double> _fadeLogo;
   late Animation<double> _fadeText;
-  
-  // Variable para controlar la visibilidad del aviso
+  late Animation<double> _slideUp;
+  late Animation<double> _scaleButton;
+
   bool _mostrarAviso = true;
 
   @override
@@ -24,17 +24,22 @@ class _PantallaBienvenidaState extends State<PantallaBienvenida>
 
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 3),
+      duration: const Duration(seconds: 2),
     )..forward();
-
-    _fadeLogo = CurvedAnimation(
-      parent: _controller,
-      curve: const Interval(0.0, 0.6, curve: Curves.easeOut),
-    );
 
     _fadeText = CurvedAnimation(
       parent: _controller,
-      curve: const Interval(0.4, 1.0, curve: Curves.easeIn),
+      curve: const Interval(0.0, 0.8, curve: Curves.easeOut),
+    );
+
+    _slideUp = CurvedAnimation(
+      parent: _controller,
+      curve: const Interval(0.2, 1.0, curve: Curves.easeOutCubic),
+    );
+
+    _scaleButton = CurvedAnimation(
+      parent: _controller,
+      curve: const Interval(0.4, 1.0, curve: Curves.elasticOut),
     );
   }
 
@@ -53,93 +58,163 @@ class _PantallaBienvenidaState extends State<PantallaBienvenida>
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
+    final mobileWidth = size.width.clamp(320.0, 400.0);
 
     return Scaffold(
       body: Stack(
         children: [
-          // Contenido principal
+          // 🎨 Fondo degradado fiesta vibrante
           Container(
             width: double.infinity,
             height: double.infinity,
-            color: fondoOscuro,
-            child: FadeTransition(
-              opacity: _fadeLogo,
-              child: Center(
-                child: SingleChildScrollView(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  colorPrimario,           // Crema fiesta cálida ✅
+                  fondoClaro.withAlpha(230), // Blanco puro translúcido ✅
+                ],
+                stops: [0.0, 1.0],
+              ),
+            ),
+            child: CustomPaint(painter: _ParticlePainter(), size: size),
+          ),
+
+          // Contenido principal centrado para mobile
+          SafeArea(
+            child: Center(
+              child: Container(
+                width: mobileWidth,
+                constraints: const BoxConstraints(maxWidth: 360),
+                child: FadeTransition(
+                  opacity: _fadeText,
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      // 🥂 Logo animado
-                      Hero(
-                        tag: 'logo',
-                        child: Image.asset(
-                          "assets/images/logo_UnShotsito.png",
-                          width: size.width * 0.6,
-                          height: size.height * 0.3,
+                      // 🔥 Título principal vibrante
+                      SlideTransition(
+                        position: Tween<Offset>(
+                          begin: const Offset(0, 0.3),
+                          end: Offset.zero,
+                        ).animate(_slideUp),
+                        child: Text(
+                          '¡UnShotsito!',
+                          style: TextStyle(
+                            fontSize: 44,
+                            fontWeight: FontWeight.w900,
+                            color: const Color.fromARGB(255, 255, 60, 0),  // Naranja shots energética ✅
+                            letterSpacing: 1.5,
+                            shadows: [
+                              Shadow(
+                                color: textoPrincipal.withAlpha(153), // Negro suave sombra
+                                offset: Offset(2, 2),
+                                blurRadius: 6,
+                              ),
+                            ],
+                          ),
+                          textAlign: TextAlign.center,
                         ),
                       ),
-
                       const SizedBox(height: 20),
 
-                      FadeTransition(
-                        opacity: _fadeText,
-                        child: Column(
-                          children: [
-                            const Text(
-                              '¡Bienvenido a UnShotsito!',
-                              style: TextStyle(
-                                fontSize: 28,
-                                fontWeight: FontWeight.bold,
-                                color: textoSecundario,
-                                letterSpacing: 1.2,
-                              ),
-                            ),
-
-                            const SizedBox(height: 30),
-
-                            // ✨ Botón con color sólido de la paleta
-                            ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: colorSecundario,
-                                foregroundColor: textoPrincipal,
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 50,
-                                  vertical: 15,
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(30),
-                                ),
-                                elevation: 5,
-                              ),
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => const PantallaJugadores(),
-                                  ),
-                                );
-                              },
-                              child: const Text(
-                                'Empezar',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-
-                            const SizedBox(height: 60),
-
-                            const Text(
-                              'Creado por FratresPixel',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontStyle: FontStyle.italic,
-                                color: textoSecundario,
-                              ),
-                            ),
-                          ],
+                      // 📝 Subtítulo
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        child: Text(
+                          'La fiesta empieza aquí',
+                          style: TextStyle(
+                            fontSize: 18,
+                            color: textoSecundario,  // Gris oscuro ✅
+                            fontWeight: FontWeight.w500,
+                            letterSpacing: 0.3,
+                            height: 1.4,
+                          ),
+                          textAlign: TextAlign.center,
                         ),
+                      ),
+                      const SizedBox(height: 60),
+
+                      // 🎮 Botón circular fiesta
+                      ScaleTransition(
+                        scale: _scaleButton,
+                        child: GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const PantallaJugadores(),
+                              ),
+                            );
+                          },
+                          child: Container(
+                            width: 120,
+                            height: 120,
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  colorSecundario,     // Naranja shots ✅
+                                  acentoDivertido,     // Fucsia fiesta ✅
+                                ],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: colorSecundario.withAlpha(128), // Naranja sombra
+                                  offset: const Offset(0, 8),
+                                  blurRadius: 20,
+                                  spreadRadius: 0,
+                                ),
+                                BoxShadow(
+                                  color: textoPrincipal.withAlpha(102), // Negro sutil
+                                  offset: const Offset(0, 4),
+                                  blurRadius: 12,
+                                ),
+                              ],
+                            ),
+                            child: const Center(
+                              child: Icon(
+                                Icons.play_arrow_rounded,
+                                size: 64,
+                                color: Colors.white,
+                                shadows: [
+                                  Shadow(
+                                    color: Colors.black45,
+                                    offset: Offset(0, 2),
+                                    blurRadius: 4,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 80),
+
+                      // 📝 Footer elegante
+                      Column(
+                        children: [
+                          Text(
+                            'Creado por',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: textoSecundario.withAlpha(204), // Gris oscuro
+                              fontWeight: FontWeight.w400,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'FratresPixel',
+                            style: TextStyle(
+                              fontSize: 15,
+                              color: textoPrincipal,  // Negro suave ✅
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 1.0,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -148,110 +223,124 @@ class _PantallaBienvenidaState extends State<PantallaBienvenida>
             ),
           ),
 
-          // Aviso de responsabilidad (modal)
-          if (_mostrarAviso)
-            Container(
-              color: Colors.black.withAlpha(7),
-              child: Center(
-                child: Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 24),
-                  padding: const EdgeInsets.all(24),
-                  decoration: BoxDecoration(
-                    color: fondoClaro,
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withAlpha(3),
-                        blurRadius: 15,
-                        offset: const Offset(0, 5),
-                      ),
-                    ],
-                  ),
-                  child: Stack(
-                    children: [
-                      Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          // Ícono de advertencia
-                          const Icon(
-                            Icons.warning_amber_rounded,
-                            color: acentoDivertido,
-                            size: 60,
-                          ),
-                          const SizedBox(height: 16),
-
-                          // Título
-                          const Text(
-                            'Consumo Responsable',
-                            style: TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.bold,
-                              color: textoPrincipal,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                          const SizedBox(height: 16),
-
-                          // Mensaje
-                          const Text(
-                            'Esta aplicación está diseñada únicamente para mayores de edad.\n\n'
-                            'Bebe con responsabilidad y conoce tus límites. '
-                            'No conduzcas bajo los efectos del alcohol.\n\n'
-                            'El consumo excesivo de alcohol es dañino para la salud.',
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: textoSecundario,
-                              height: 1.5,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                          const SizedBox(height: 24),
-
-                          // Botón de aceptar
-                          ElevatedButton(
-                            onPressed: _cerrarAviso,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: colorExito,
-                              foregroundColor: textoPrincipal,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 40,
-                                vertical: 12,
-                              ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(15),
-                              ),
-                            ),
-                            child: const Text(
-                              'Entendido',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-
-                      // Botón X en la esquina superior derecha
-                      Positioned(
-                        top: -8,
-                        right: -8,
-                        child: IconButton(
-                          onPressed: _cerrarAviso,
-                          icon: const Icon(
-                            Icons.close,
-                            color: textoSecundario,
-                            size: 28,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
+          // ⚠️ Modal de aviso mejorado
+          if (_mostrarAviso) _buildAvisoMejorado(context),
         ],
       ),
     );
   }
+
+  Widget _buildAvisoMejorado(BuildContext context) {
+    return Container(
+      color: textoPrincipal.withAlpha(128), // Negro suave overlay
+      child: Center(
+        child: Container(
+          margin: const EdgeInsets.symmetric(horizontal: 28),
+          padding: const EdgeInsets.all(28),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                fondoClaro,              // Blanco puro ✅
+                fondoClaro.withAlpha(230),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: [
+              BoxShadow(
+                color: textoPrincipal.withAlpha(128), // Negro suave sombra
+                blurRadius: 25,
+                spreadRadius: 0,
+                offset: const Offset(0, 12),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: acentoDivertido.withAlpha(102), // Fucsia sutil ✅
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.local_bar_rounded,
+                  color: acentoDivertido,  // Fucsia fiesta ✅
+                  size: 48,
+                ),
+              ),
+              const SizedBox(height: 20),
+              const Text(
+                'Consumo Responsable',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: textoPrincipal,  // Negro suave ✅
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Para mayores de 18 años.\n'
+                'Disfruta responsablemente.\n'
+                'No conduzcas bajo efectos del alcohol.\n'
+                'Tu salud es lo primero.',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: textoSecundario,  // Gris oscuro ✅
+                  height: 1.6,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 28),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _cerrarAviso,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: colorExito,     // Verde lima ✅
+                    foregroundColor: textoPrincipal, // Negro suave ✅
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    elevation: 0,
+                  ),
+                  child: const Text(
+                    '¡Estoy listo!',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ✨ Partículas decorativas fiesta
+class _ParticlePainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = colorSecundario.withAlpha(26) // Naranja sutil ✅
+      ..style = PaintingStyle.fill;
+
+    final random = DateTime.now().millisecond / 1000;
+
+    for (int i = 0; i < 12; i++) {
+      final x = (size.width * 0.1 * i + random * 50) % size.width;
+      final y = (size.height * 0.2 * i + random * 30) % size.height;
+      final radius = 2 + (random * 3);
+
+      canvas.drawCircle(Offset(x, y), radius, paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 }
