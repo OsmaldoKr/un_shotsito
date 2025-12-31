@@ -12,15 +12,11 @@ import '../widgets/icono_reto_especial.dart';
 
 class PantallaReto extends StatefulWidget {
   final List<String> jugadores;
-  final String modo;
-  final List<int> rango;
   final String tipo;
 
   const PantallaReto({
     super.key,
     required this.jugadores,
-    required this.modo,
-    required this.rango,
     required this.tipo,
   });
 
@@ -33,6 +29,7 @@ class _PantallaRetoState extends State<PantallaReto>
   String textoReto = '';
   String textoCastigo = '';
   bool mostrandoCastigo = false;
+  
   final Random _random = Random();
   final ProcesadorTexto _procesador = ProcesadorTexto();
   
@@ -68,7 +65,6 @@ class _PantallaRetoState extends State<PantallaReto>
     final retoObj = obtenerRetoAleatorio(widget.tipo);
     String reto = _procesador.procesarRetoConJugadores(
         retoObj.descripcion, widget.jugadores);
-    reto = _procesador.procesarShotsEnReto(reto, widget.rango);
 
     setState(() {
       textoReto = reto;
@@ -136,7 +132,6 @@ class _PantallaRetoState extends State<PantallaReto>
       final retoObj = obtenerRetoAleatorio(widget.tipo);
       String reto = _procesador.procesarRetoConJugadores(
           retoObj.descripcion, widget.jugadores);
-      reto = _procesador.procesarShotsEnReto(reto, widget.rango);
       
       setState(() => textoReto = reto);
       await _animationController.forward();
@@ -149,7 +144,6 @@ class _PantallaRetoState extends State<PantallaReto>
     final retoObj = obtenerRetoAleatorio(widget.tipo);
     String reto = _procesador.procesarRetoConJugadores(
         retoObj.descripcion, widget.jugadores);
-    reto = _procesador.procesarShotsEnReto(reto, widget.rango);
 
     _actualizarRetosEspeciales();
     _agregarRetoEspecial();
@@ -167,7 +161,6 @@ class _PantallaRetoState extends State<PantallaReto>
   void mostrarCastigo() {
     String castigo = _procesador.procesarRetoConJugadores(
         obtenerCastigoAleatorio(), widget.jugadores);
-    castigo = _procesador.procesarShotsEnReto(castigo, widget.rango);
 
     setState(() {
       textoCastigo = castigo;
@@ -186,10 +179,10 @@ class _PantallaRetoState extends State<PantallaReto>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: colorPrimario,  // ✅ Crema fiesta cálida
+      backgroundColor: colorPrimario,
       body: Column(
         children: [
-          // 🎉 Header fiesta gradiente
+          // Header
           Container(
             width: double.infinity,
             padding: const EdgeInsets.only(top: 50, bottom: 20),
@@ -197,10 +190,7 @@ class _PantallaRetoState extends State<PantallaReto>
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [
-                  colorSecundario,     // Naranja shots ✅
-                  acentoDivertido,     // Fucsia fiesta ✅
-                ],
+                colors: [colorSecundario, acentoDivertido],
               ),
               borderRadius: const BorderRadius.only(
                 bottomLeft: Radius.circular(40),
@@ -243,7 +233,7 @@ class _PantallaRetoState extends State<PantallaReto>
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      // 🎮 Tarjeta de reto principal
+                      // Tarjeta de reto principal
                       Expanded(
                         child: Stack(
                           children: [
@@ -255,7 +245,7 @@ class _PantallaRetoState extends State<PantallaReto>
                               ),
                             ),
                             
-                            // ✨ Íconos retos especiales activos
+                            // Íconos retos especiales activos
                             if (retosEspecialesActivos.isNotEmpty)
                               Positioned(
                                 top: 8,
@@ -277,7 +267,7 @@ class _PantallaRetoState extends State<PantallaReto>
                       
                       const SizedBox(height: 32),
                       
-                      // 🚀 Botones fiesta vibrantes
+                      // Botones
                       if (retoEspecialPendiente != null)
                         SizedBox(
                           width: double.infinity,
@@ -286,7 +276,7 @@ class _PantallaRetoState extends State<PantallaReto>
                             onPressed: _aceptarRetoEspecial,
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.white,
-                              foregroundColor: colorSecundario,  // Naranja shots ✅
+                              foregroundColor: colorSecundario,
                               padding: EdgeInsets.zero,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(25),
@@ -307,15 +297,15 @@ class _PantallaRetoState extends State<PantallaReto>
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
-                            // ✅ Cumplí - Verde lima fiesta
+                            // Cumplí
                             SizedBox(
                               width: 140,
                               height: 60,
                               child: ElevatedButton(
                                 onPressed: () => completarReto(cumplio: true),
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: colorExito,     // Verde lima ✅
-                                  foregroundColor: textoPrincipal, // Negro suave ✅
+                                  backgroundColor: colorExito,
+                                  foregroundColor: textoPrincipal,
                                   padding: EdgeInsets.zero,
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(25),
@@ -332,15 +322,15 @@ class _PantallaRetoState extends State<PantallaReto>
                                 ),
                               ),
                             ),
-                            // ❌ Castigo - Fucsia intenso
+                            // Castigo
                             SizedBox(
                               width: 140,
                               height: 60,
                               child: ElevatedButton(
                                 onPressed: mostrarCastigo,
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: acentoDivertido, // Fucsia fiesta ✅
-                                  foregroundColor: textoPrincipal,  // Negro suave ✅
+                                  backgroundColor: acentoDivertido,
+                                  foregroundColor: textoPrincipal,
                                   padding: EdgeInsets.zero,
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(25),
@@ -363,7 +353,7 @@ class _PantallaRetoState extends State<PantallaReto>
                   ),
                 ),
 
-                // 🌟 Modales fiesta
+                // Modales
                 if (mostrandoCastigo)
                   ModalCastigo(
                     textoCastigo: textoCastigo,

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../theme.dart';
 import 'jugadores.dart';
-
+import 'dart:math';
 class PantallaBienvenida extends StatefulWidget {
   const PantallaBienvenida({super.key});
 
@@ -63,25 +63,25 @@ class _PantallaBienvenidaState extends State<PantallaBienvenida>
     return Scaffold(
       body: Stack(
         children: [
-          // 🎨 Fondo degradado fiesta vibrante
+          // 🎨 Fondo shots profesional
           Container(
             width: double.infinity,
             height: double.infinity,
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
+              gradient: RadialGradient(
+                center: const Alignment(0.2, -0.3),
                 colors: [
-                  colorPrimario,           // Crema fiesta cálida ✅
-                  fondoClaro.withAlpha(230), // Blanco puro translúcido ✅
+                  colorPrimario,                    // Crema fiesta cálida
+                  colorPrimario.withAlpha(230),
+                  fondoClaro.withAlpha(204),
                 ],
-                stops: [0.0, 1.0],
+                stops: const [0.0, 0.7, 1.0],
               ),
             ),
-            child: CustomPaint(painter: _ParticlePainter(), size: size),
+            child: CustomPaint(painter: _ShotGlassPainter(), size: size),
           ),
 
-          // Contenido principal centrado para mobile
+          // 📱 Contenido principal
           SafeArea(
             child: Center(
               child: Container(
@@ -92,50 +92,55 @@ class _PantallaBienvenidaState extends State<PantallaBienvenida>
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      // 🔥 Título principal vibrante
+                      // 🥃 Logo shots principal
                       SlideTransition(
                         position: Tween<Offset>(
                           begin: const Offset(0, 0.3),
                           end: Offset.zero,
                         ).animate(_slideUp),
-                        child: Text(
-                          '¡UnShotsito!',
-                          style: TextStyle(
-                            fontSize: 44,
-                            fontWeight: FontWeight.w900,
-                            color: const Color.fromARGB(255, 255, 60, 0),  // Naranja shots energética ✅
-                            letterSpacing: 1.5,
-                            shadows: [
-                              Shadow(
-                                color: textoPrincipal.withAlpha(153), // Negro suave sombra
-                                offset: Offset(2, 2),
-                                blurRadius: 6,
+                        child: Column(
+                          children: [
+                            Text(
+                              'Un Shotsito',
+                              style: TextStyle(
+                                fontSize: 40,
+                                fontWeight: FontWeight.w900,
+                                color: colorSecundario,
+                                letterSpacing: 2.0,
+                                height: 1.05,
+                                shadows: [
+                                  Shadow(
+                                    color: textoPrincipal.withAlpha(153),
+                                    offset: Offset(0, 4),
+                                    blurRadius: 12,
+                                  ),
+                                ],
                               ),
-                            ],
-                          ),
-                          textAlign: TextAlign.center,
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
                         ),
                       ),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 24),
 
-                      // 📝 Subtítulo
+                      // 📝 Tagline profesional
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 24),
                         child: Text(
-                          'La fiesta empieza aquí',
+                          'La fiesta perfecta',
                           style: TextStyle(
                             fontSize: 18,
-                            color: textoSecundario,  // Gris oscuro ✅
-                            fontWeight: FontWeight.w500,
-                            letterSpacing: 0.3,
+                            color: textoPrincipal,
+                            fontWeight: FontWeight.w600,
                             height: 1.4,
+                            letterSpacing: 0.2,
                           ),
                           textAlign: TextAlign.center,
                         ),
                       ),
                       const SizedBox(height: 60),
 
-                      // 🎮 Botón circular fiesta
+                      // 🚀 Botón play shots
                       ScaleTransition(
                         scale: _scaleButton,
                         child: GestureDetector(
@@ -148,13 +153,13 @@ class _PantallaBienvenidaState extends State<PantallaBienvenida>
                             );
                           },
                           child: Container(
-                            width: 120,
-                            height: 120,
+                            width: 130,
+                            height: 130,
                             decoration: BoxDecoration(
                               gradient: LinearGradient(
                                 colors: [
-                                  colorSecundario,     // Naranja shots ✅
-                                  acentoDivertido,     // Fucsia fiesta ✅
+                                  colorSecundario,
+                                  shotsNaranja,
                                 ],
                                 begin: Alignment.topLeft,
                                 end: Alignment.bottomRight,
@@ -162,28 +167,28 @@ class _PantallaBienvenidaState extends State<PantallaBienvenida>
                               shape: BoxShape.circle,
                               boxShadow: [
                                 BoxShadow(
-                                  color: colorSecundario.withAlpha(128), // Naranja sombra
-                                  offset: const Offset(0, 8),
-                                  blurRadius: 20,
-                                  spreadRadius: 0,
+                                  color: colorSecundario.withAlpha(153),
+                                  offset: const Offset(0, 12),
+                                  blurRadius: 32,
+                                  spreadRadius: 2,
                                 ),
                                 BoxShadow(
-                                  color: textoPrincipal.withAlpha(102), // Negro sutil
-                                  offset: const Offset(0, 4),
-                                  blurRadius: 12,
+                                  color: textoPrincipal.withAlpha(102),
+                                  offset: const Offset(0, 6),
+                                  blurRadius: 16,
                                 ),
                               ],
                             ),
                             child: const Center(
                               child: Icon(
                                 Icons.play_arrow_rounded,
-                                size: 64,
+                                size: 70,
                                 color: Colors.white,
                                 shadows: [
                                   Shadow(
-                                    color: Colors.black45,
-                                    offset: Offset(0, 2),
-                                    blurRadius: 4,
+                                    color: Colors.black54,
+                                    offset: Offset(0, 3),
+                                    blurRadius: 8,
                                   ),
                                 ],
                               ),
@@ -193,25 +198,26 @@ class _PantallaBienvenidaState extends State<PantallaBienvenida>
                       ),
                       const SizedBox(height: 80),
 
-                      // 📝 Footer elegante
+                      // 👨‍💻 Footer brand
                       Column(
                         children: [
                           Text(
-                            'Creado por',
+                            'Desarrollado por',
                             style: TextStyle(
                               fontSize: 13,
-                              color: textoSecundario.withAlpha(204), // Gris oscuro
+                              color: textoSecundario.withAlpha(204),
                               fontWeight: FontWeight.w400,
+                              letterSpacing: 0.5,
                             ),
                           ),
-                          const SizedBox(height: 4),
+                          const SizedBox(height: 6),
                           Text(
                             'FratresPixel',
                             style: TextStyle(
-                              fontSize: 15,
-                              color: textoPrincipal,  // Negro suave ✅
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: 1.0,
+                              fontSize: 16,
+                              color: textoPrincipal,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 1.2,
                             ),
                           ),
                         ],
@@ -223,74 +229,59 @@ class _PantallaBienvenidaState extends State<PantallaBienvenida>
             ),
           ),
 
-          // ⚠️ Modal de aviso mejorado
-          if (_mostrarAviso) _buildAvisoMejorado(context),
+          // ⚠️ Aviso legal profesional
+          if (_mostrarAviso) _buildAvisoLegal(context),
         ],
       ),
     );
   }
 
-  Widget _buildAvisoMejorado(BuildContext context) {
+  Widget _buildAvisoLegal(BuildContext context) {
     return Container(
-      color: textoPrincipal.withAlpha(128), // Negro suave overlay
+      color: textoPrincipal.withAlpha(140),
       child: Center(
         child: Container(
-          margin: const EdgeInsets.symmetric(horizontal: 28),
+          margin: const EdgeInsets.symmetric(horizontal: 32),
           padding: const EdgeInsets.all(28),
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                fondoClaro,              // Blanco puro ✅
-                fondoClaro.withAlpha(230),
+                Colors.white,
+                Colors.white.withAlpha(230),
               ],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
             ),
             borderRadius: BorderRadius.circular(24),
             boxShadow: [
               BoxShadow(
-                color: textoPrincipal.withAlpha(128), // Negro suave sombra
-                blurRadius: 25,
-                spreadRadius: 0,
-                offset: const Offset(0, 12),
+                color: textoPrincipal.withAlpha(140),
+                blurRadius: 30,
+                offset: const Offset(0, 16),
               ),
             ],
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: acentoDivertido.withAlpha(102), // Fucsia sutil ✅
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  Icons.local_bar_rounded,
-                  color: acentoDivertido,  // Fucsia fiesta ✅
-                  size: 48,
-                ),
-              ),
               const SizedBox(height: 20),
               const Text(
                 'Consumo Responsable',
                 style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: textoPrincipal,  // Negro suave ✅
+                  fontSize: 22,
+                  fontWeight: FontWeight.w800,
+                  color: textoPrincipal,
                 ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 16),
               Text(
                 'Para mayores de 18 años.\n'
-                'Disfruta responsablemente.\n'
+                'Juega y bebe responsablemente.\n'
                 'No conduzcas bajo efectos del alcohol.\n'
-                'Tu salud es lo primero.',
+                'Tu seguridad primero.',
                 style: TextStyle(
-                  fontSize: 16,
-                  color: textoSecundario,  // Gris oscuro ✅
-                  height: 1.6,
+                  fontSize: 15,
+                  color: textoSecundario,
+                  height: 1.5,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -300,8 +291,8 @@ class _PantallaBienvenidaState extends State<PantallaBienvenida>
                 child: ElevatedButton(
                   onPressed: _cerrarAviso,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: colorExito,     // Verde lima ✅
-                    foregroundColor: textoPrincipal, // Negro suave ✅
+                    backgroundColor: colorSecundario,
+                    foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
@@ -309,8 +300,11 @@ class _PantallaBienvenidaState extends State<PantallaBienvenida>
                     elevation: 0,
                   ),
                   child: const Text(
-                    '¡Estoy listo!',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    '¡Empezar la fiesta!',
+                    style: TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ),
               ),
@@ -322,22 +316,51 @@ class _PantallaBienvenidaState extends State<PantallaBienvenida>
   }
 }
 
-// ✨ Partículas decorativas fiesta
-class _ParticlePainter extends CustomPainter {
+// 🥃 Pintor vasos shots sutiles
+class _ShotGlassPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = colorSecundario.withAlpha(26) // Naranja sutil ✅
+      ..color = colorSecundario.withAlpha(20)
       ..style = PaintingStyle.fill;
 
-    final random = DateTime.now().millisecond / 1000;
+    final glassPaint = Paint()
+      ..color = Colors.white.withAlpha(30)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.5;
 
-    for (int i = 0; i < 12; i++) {
-      final x = (size.width * 0.1 * i + random * 50) % size.width;
-      final y = (size.height * 0.2 * i + random * 30) % size.height;
-      final radius = 2 + (random * 3);
+    final now = DateTime.now().millisecondsSinceEpoch / 2000.0;
 
-      canvas.drawCircle(Offset(x, y), radius, paint);
+    // 4 vasos shots flotantes
+    final positions = [
+      Offset(size.width * 0.2, size.height * 0.3 + sin(now) * 10),
+      Offset(size.width * 0.8, size.height * 0.6 + cos(now * 1.3) * 12),
+      Offset(size.width * 0.15, size.height * 0.8 + sin(now * 0.7) * 8),
+      Offset(size.width * 0.75, size.height * 0.25 + cos(now * 1.1) * 10),
+    ];
+
+    for (final pos in positions) {
+      // Vaso shot outline
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(
+          Rect.fromCenter(center: pos, width: 28, height: 42),
+          const Radius.circular(6),
+        ),
+        glassPaint,
+      );
+      
+      // Líquido shot
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(
+          Rect.fromCenter(
+            center: Offset(pos.dx, pos.dy + 8),
+            width: 22,
+            height: 20,
+          ),
+          const Radius.circular(4),
+        ),
+        paint,
+      );
     }
   }
 

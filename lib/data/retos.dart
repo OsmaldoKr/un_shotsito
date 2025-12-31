@@ -1,5 +1,5 @@
 final Map<String, List<String>> retosPorCategoria = {
-  'Pre': [
+  'SHOTS LIGEROS': [
     'Name, intercambia tu playera con la persona del sexo opuesto más próxima',
     'Los que están perdiendo cabello se reparten 3 shot entre ellos',
     'Name, bebe lo que desees, name beberá el doble',
@@ -87,7 +87,7 @@ final Map<String, List<String>> retosPorCategoria = {
     'Name, relata tu peor cita romántica o bebe 3 shot',
   ],
 
-  'Pasaditos': [
+  'SHOTS PICANTES': [
   'Todos toman shot; el que haga una cara de asco se toma otro',
   'Si has tenido sexo en un carro, tómate 3 shot',
   'Name, deja que name te eche un hielo en la espalda o tómate 6 tragos',
@@ -183,7 +183,7 @@ final Map<String, List<String>> retosPorCategoria = {
 
   ],
 
-  'After': [ 
+  'SHOTS NOCTURNOS': [ 
   'Llámale a tus papás y diles que necesitas que te saquen de la cárcel o tómate 3 shots',
   'Name, toma tantos shot como puedas; también los toma la persona a la derecha',
   'Si cuando acabas de tener sexo vas al baño, tómate 5 shot',
@@ -297,7 +297,7 @@ final Map<String, List<String>> retosPorCategoria = {
 
   ],
 
-  'Pareja': [
+  'SHOTS EN PAREJA': [
   'El que siempre empieza las peleas se toma 3 tragos',
   'Name, dile a tu pareja lo que más te gusta de ella en menos de 10 segundos',
   'Haz el reto "sin palabras": expresa con gestos lo que más te molesta y deja que tu pareja adivine',
@@ -399,7 +399,7 @@ final Map<String, List<String>> retosPorCategoria = {
   'Name, inventa una historia de amor falsa',
   ],
 
-  'Bar': [
+  'SHOTS EN BAR': [
   'Pídele su número a un desconocido de otra mesa o tómate 5 tragos',
   'Hazle una broma a un desconocido del bar; si sale mal, tómate 3 shots',
   'Logra que el bartender te regale algo; si no puedes, toma 3 shots',
@@ -501,7 +501,7 @@ final Map<String, List<String>> retosPorCategoria = {
   'Reta a alguien a decir tu nombre al revés',
   ],
 
-  'Hot': [
+  'SHOTS CALIENTES': [
   'Name, derrama un poco de tu bebida en el cuello de name y límpialo con la lengua',
   '¿Cuándo fue la última vez que te masturbaste? ¿Y en quién pensaste? Muestra una foto',
   '¿Te gustaría verme mientras me toco? Pregunta a alguien',
@@ -609,7 +609,7 @@ final Map<String, List<String>> retosPorCategoria = {
 
   ],
 
-  'Funas': [
+  'SHOTS PARA CONFESAR': [
   'Name, ¿qué le robaste a tus papás de niño?',
   'Name, confiesa tu peor mentira familiar',
   'Name, ¿cuál es tu trauma de infancia más grande?',
@@ -792,7 +792,7 @@ final Map<String, List<String>> retosPorCategoria = {
   'Name, ¿cuál es tu secreto de sexo virtual?',
   'Name, ¿qué le ocultas a name sobre tu ex?',
   'Name, ¿cuál fue tu peor momento de celos sexuales?',
-  'Name, ¿qué fantasía de 3somes no confesaste?',
+  'Name, ¿qué fantasía de xxx no confesaste?',
   'Name, ¿cuál es tu secreto de duración falsa?',
   'Name, ¿qué pensaste del vello de name?',
   'Name, ¿cuál fue tu peor polvo de rebote?',

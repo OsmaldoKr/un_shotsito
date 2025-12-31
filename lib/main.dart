@@ -14,7 +14,7 @@ class UnShotsitoApp extends StatelessWidget {
     return MaterialApp(
       title: 'UnShotsito',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData.light().copyWith(  // ✅ Cambiado a LIGHT theme
+      theme: ThemeData.light().copyWith(  
         scaffoldBackgroundColor: colorPrimario,  // Crema fiesta cálida
         colorScheme: ColorScheme.light(
           primary: colorSecundario,     // Naranja shots energética
