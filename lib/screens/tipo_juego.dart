@@ -1,343 +1,951 @@
 import 'package:flutter/material.dart';
+import '../theme.dart';
 import 'pantalla_reto.dart';
-import 'package:un_shotsito/theme.dart';
 
-class PantallaTipoJuego extends StatelessWidget {
-  final List<String> jugadores;
-
+class PantallaTipoJuego extends StatefulWidget {
   const PantallaTipoJuego({
     super.key,
     required this.jugadores,
   });
 
-  final List<Map<String, dynamic>> tiposJuego = const [
-    {
-      'titulo': 'SHOTS LIGEROS',
-      'descripcion': 'Calentamiento con shots suaves',
-      'color': Color(0xFFFF9800),  // shotsNaranja
-      'emoji': '🥃',
-    },
-    {
-      'titulo': 'SHOTS PICANTES',
-      'descripcion': 'Retos + shots que queman',
-      'color': Color(0xFFE91E63),  // fucsiaFiesta
-      'emoji': '🍸',
-    },
-    {
-      'titulo': 'SHOTS NOCTURNOS',
-      'descripcion': 'After con shots infinitos',
-      'color': Color(0xFFFFD93D),  // amarilloBrillante
-      'emoji': '🍹',
-    },
-    {
-      'titulo': 'SHOTS CALIENTES',
-      'descripcion': 'Retos hot + shots dobles',
-      'color': Color(0xFFF44336),  // rojoCocktail
-      'emoji': '❤️',
-    },
-    {
-      'titulo': 'SHOTS EN PAREJA',
-      'descripcion': 'Shots compartidos íntimos',
-      'color': Color(0xFF00BCD4),  // turquesaFiesta
-      'emoji': '💕',
-    },
-    {
-      'titulo': 'SHOTS DE BAR',
-      'descripcion': 'Clásicos de bar + retos',
-      'color': Color(0xFFFF5722),  // colorSecundario
-      'emoji': '🍻',
-    },
-    {
-      'titulo': 'SHOTS PARA CONFESAR',
-      'descripcion': 'Verdades + shot castigo',
-      'color': Color(0xFF9C27B0),  // violetaParty
-      'emoji': '🗣️',
-    },
+  final List<String> jugadores;
+
+  @override
+  State<PantallaTipoJuego> createState() =>
+      _PantallaTipoJuegoState();
+}
+
+class _PantallaTipoJuegoState extends State<PantallaTipoJuego> {
+  late final PageController _pageController;
+
+  int _paginaActual = 0;
+  bool _navegando = false;
+
+  static const List<TipoJuego> _tiposJuego = [
+    TipoJuego(
+      titulo: 'SHOTS LIGEROS',
+      nombreVisible: 'Shots ligeros',
+      descripcion: 'Retos suaves para comenzar la fiesta.',
+      icono: 'assets/images/shot_ligeros.png',
+      color: AppColors.challenge,
+      intensidad: 'Suave',
+      iconoIntensidad: Icons.sentiment_satisfied_alt_rounded,
+    ),
+    TipoJuego(
+      titulo: 'SHOTS PICANTES',
+      nombreVisible: 'Shots picantes',
+      descripcion: 'Retos atrevidos que aumentan la intensidad.',
+      icono: 'assets/images/shot_picante.png',
+      color: AppColors.intense,
+      intensidad: 'Intenso',
+      iconoIntensidad: Icons.local_fire_department_rounded,
+    ),
+    TipoJuego(
+      titulo: 'SHOTS NOCTURNOS',
+      nombreVisible: 'Shots nocturnos',
+      descripcion: 'Retos para continuar la fiesta hasta tarde.',
+      icono: 'assets/images/shot_nocturnos.png',
+      color: AppColors.random,
+      intensidad: 'Nocturno',
+      iconoIntensidad: Icons.dark_mode_rounded,
+    ),
+    TipoJuego(
+      titulo: 'SHOTS CALIENTES',
+      nombreVisible: 'Shots calientes',
+      descripcion: 'Retos atrevidos para subir la intensidad.',
+      icono: 'assets/images/shot_calientes.png',
+      color: AppColors.punishment,
+      intensidad: 'Caliente',
+      iconoIntensidad: Icons.whatshot_rounded,
+    ),
+    TipoJuego(
+      titulo: 'SHOTS EN PAREJA',
+      nombreVisible: 'Shots en pareja',
+      descripcion: 'Retos diseñados para compartir con tu pareja.',
+      icono: 'assets/images/shot_pareja.png',
+      color: AppColors.group,
+      intensidad: 'Parejas',
+      iconoIntensidad: Icons.favorite_rounded,
+    ),
+    TipoJuego(
+      titulo: 'SHOTS DE BAR',
+      nombreVisible: 'Shots de bar',
+      descripcion: 'Retos clásicos para compartir entre amigos.',
+      icono: 'assets/images/shot_bar.png',
+      color: AppColors.primary,
+      intensidad: 'Clásico',
+      iconoIntensidad: Icons.local_bar_rounded,
+    ),
+    TipoJuego(
+      titulo: 'SHOTS PARA CONFESAR',
+      nombreVisible: 'Shots para confesar',
+      descripcion: 'Preguntas, secretos y verdades inesperadas.',
+      icono: 'assets/images/shot_confesar.png',
+      color: AppColors.relaxed,
+      intensidad: 'Confesiones',
+      iconoIntensidad: Icons.record_voice_over_rounded,
+    ),
   ];
+
+  TipoJuego get _tipoSeleccionado =>
+      _tiposJuego[_paginaActual];
+
+  @override
+  void initState() {
+    super.initState();
+
+    _pageController = PageController(
+      viewportFraction: 0.84,
+    );
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _abrirCategoria(
+    TipoJuego tipo,
+  ) async {
+    if (_navegando) return;
+
+    setState(() {
+      _navegando = true;
+    });
+
+    await Navigator.of(context).push(
+      PageRouteBuilder<void>(
+        transitionDuration: const Duration(milliseconds: 480),
+        reverseTransitionDuration:
+            const Duration(milliseconds: 350),
+        pageBuilder: (
+          context,
+          animation,
+          secondaryAnimation,
+        ) {
+          return PantallaReto(
+            jugadores: List<String>.from(widget.jugadores),
+            tipo: tipo.titulo,
+          );
+        },
+        transitionsBuilder: (
+          context,
+          animation,
+          secondaryAnimation,
+          child,
+        ) {
+          final curvedAnimation = CurvedAnimation(
+            parent: animation,
+            curve: Curves.easeOutCubic,
+          );
+
+          return FadeTransition(
+            opacity: curvedAnimation,
+            child: SlideTransition(
+              position: Tween<Offset>(
+                begin: const Offset(0.05, 0),
+                end: Offset.zero,
+              ).animate(curvedAnimation),
+              child: child,
+            ),
+          );
+        },
+      ),
+    );
+
+    if (!mounted) return;
+
+    setState(() {
+      _navegando = false;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: colorPrimario,
-      body: CustomScrollView(
-        slivers: [
-          // 🎯 HEADER SHOTS ORIGINAL
-          SliverToBoxAdapter(
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.only(top: 50, bottom: 20),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [colorSecundario, acentoDivertido],
+      backgroundColor: AppColors.background,
+      body: SafeArea(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final pantallaEstrecha =
+                constraints.maxWidth < 360;
+
+            final pantallaBaja =
+                constraints.maxHeight < 650;
+
+            return Column(
+              children: [
+                _EncabezadoTipoJuego(
+                  cantidadJugadores:
+                      widget.jugadores.length,
+                  pantallaEstrecha: pantallaEstrecha,
                 ),
-                borderRadius: const BorderRadius.only(
-                  bottomLeft: Radius.circular(40),
-                  bottomRight: Radius.circular(40),
+                SizedBox(
+                  height: pantallaBaja ? 8 : 14,
                 ),
-                boxShadow: [
-                  BoxShadow(
-                    color: colorSecundario.withAlpha(102),
-                    blurRadius: 20,
-                    offset: const Offset(0, 8),
-                  ),
-                ],
-              ),
-              child: SafeArea(
-                child: Center(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Column(
-                      children: [
-                        const SizedBox(height: 8),
-                        const Text(
-                          '¡Elige tu shot de retos!',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: 0.3,
+                Expanded(
+                  child: PageView.builder(
+                    controller: _pageController,
+                    itemCount: _tiposJuego.length,
+                    padEnds: true,
+                    physics:
+                        const BouncingScrollPhysics(),
+                    onPageChanged: (index) {
+                      setState(() {
+                        _paginaActual = index;
+                      });
+                    },
+                    itemBuilder: (context, index) {
+                      return AnimatedBuilder(
+                        animation: _pageController,
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 7,
+                            vertical:
+                                pantallaBaja ? 10 : 18,
+                          ),
+                          child: TarjetaTipoJuego(
+                            tipo: _tiposJuego[index],
+                            seleccionado:
+                                index == _paginaActual,
+                            pantallaBaja: pantallaBaja,
+                            onTap: () {
+                              if (index !=
+                                  _paginaActual) {
+                                _pageController
+                                    .animateToPage(
+                                  index,
+                                  duration: const Duration(
+                                    milliseconds: 320,
+                                  ),
+                                  curve:
+                                      Curves.easeOutCubic,
+                                );
+
+                                return;
+                              }
+
+                              _abrirCategoria(
+                                _tiposJuego[index],
+                              );
+                            },
                           ),
                         ),
-                      ],
-                    ),
+                        builder: (context, child) {
+                          var diferencia = 0.0;
+
+                          if (_pageController
+                              .hasClients) {
+                            final page =
+                                _pageController
+                                        .page ??
+                                    _paginaActual
+                                        .toDouble();
+
+                            diferencia =
+                                page - index;
+                          }
+
+                          final escala = (1 -
+                                  diferencia.abs() *
+                                      0.08)
+                              .clamp(0.90, 1.0);
+
+                          final opacidad = (1 -
+                                  diferencia.abs() *
+                                      0.22)
+                              .clamp(0.72, 1.0);
+
+                          return Transform.scale(
+                            scale: escala,
+                            child: Opacity(
+                              opacity: opacidad,
+                              child: child,
+                            ),
+                          );
+                        },
+                      );
+                    },
                   ),
                 ),
-              ),
-            ),
-          ),
-          
-          // 🎨 CARDS SHOTS ULTRA FIESTA
-          SliverPadding(
-            padding: const EdgeInsets.fromLTRB(20, 24, 20, 40),
-            sliver: SliverList(
-              delegate: SliverChildBuilderDelegate(
-                (context, index) {
-                  final tipo = tiposJuego[index];
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 20),
-                    child: ShotModeCard(
-                      tipo: tipo,
-                      jugadores: jugadores,
-                      onTap: () => _navigateToReto(context, tipo),
-                    ),
-                  );
-                },
-                childCount: tiposJuego.length,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _navigateToReto(BuildContext context, Map<String, dynamic> tipo) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => PantallaReto(
-          jugadores: jugadores,
-          tipo: tipo['titulo'] as String,
+                _IndicadoresCategorias(
+                  cantidad: _tiposJuego.length,
+                  seleccionado: _paginaActual,
+                ),
+                SizedBox(
+                  height: pantallaBaja ? 12 : 18,
+                ),
+                Padding(
+                  padding: EdgeInsets.fromLTRB(
+                    pantallaEstrecha ? 16 : 22,
+                    0,
+                    pantallaEstrecha ? 16 : 22,
+                    pantallaBaja ? 12 : 20,
+                  ),
+                  child: _BotonJugarCategoria(
+                    tipo: _tipoSeleccionado,
+                    navegando: _navegando,
+                    onPressed: () {
+                      _abrirCategoria(
+                        _tipoSeleccionado,
+                      );
+                    },
+                  ),
+                ),
+              ],
+            );
+          },
         ),
       ),
     );
   }
 }
 
-class ShotModeCard extends StatelessWidget {
-  final Map<String, dynamic> tipo;
-  final List<String> jugadores;
-  final VoidCallback onTap;
+// ===========================================================
+// MODELO
+// ===========================================================
 
-  const ShotModeCard({
-    super.key,
-    required this.tipo,
-    required this.jugadores,
-    required this.onTap,
+class TipoJuego {
+  const TipoJuego({
+    required this.titulo,
+    required this.nombreVisible,
+    required this.descripcion,
+    required this.icono,
+    required this.color,
+    required this.intensidad,
+    required this.iconoIntensidad,
   });
+
+  final String titulo;
+  final String nombreVisible;
+  final String descripcion;
+  final String icono;
+  final Color color;
+  final String intensidad;
+  final IconData iconoIntensidad;
+}
+
+// ===========================================================
+// ENCABEZADO
+// ===========================================================
+
+class _EncabezadoTipoJuego extends StatelessWidget {
+  const _EncabezadoTipoJuego({
+    required this.cantidadJugadores,
+    required this.pantallaEstrecha,
+  });
+
+  final int cantidadJugadores;
+  final bool pantallaEstrecha;
 
   @override
   Widget build(BuildContext context) {
-    final colorShot = tipo['color'] as Color;
-    final emojiShot = tipo['emoji'] as String;
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+        pantallaEstrecha ? 14 : 18,
+        10,
+        pantallaEstrecha ? 14 : 18,
+        8,
+      ),
+      child: Row(
+        children: [
+          IconButton(
+            tooltip: 'Volver',
+            onPressed: () =>
+                Navigator.pop(context),
+            style: IconButton.styleFrom(
+              backgroundColor: AppColors.surface,
+              foregroundColor:
+                  AppColors.textPrimary,
+              minimumSize: const Size.square(46),
+              maximumSize: const Size.square(46),
+              side: const BorderSide(
+                color: AppColors.border,
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius:
+                    BorderRadius.circular(
+                  AppSizes.radiusMedium,
+                ),
+              ),
+            ),
+            icon: const Icon(
+              Icons.arrow_back_rounded,
+              size: 23,
+            ),
+          ),
+          const SizedBox(width: 13),
+          Expanded(
+            child: Column(
+              crossAxisAlignment:
+                  CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Elige una categoría',
+                  maxLines: 1,
+                  overflow:
+                      TextOverflow.ellipsis,
+                  style: Theme.of(context)
+                      .textTheme
+                      .headlineSmall
+                      ?.copyWith(
+                        color:
+                            AppColors.textPrimary,
+                        fontSize: pantallaEstrecha
+                            ? 21
+                            : 24,
+                        fontWeight:
+                            FontWeight.w900,
+                      ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  'Desliza para descubrir los retos',
+                  maxLines: 1,
+                  overflow:
+                      TextOverflow.ellipsis,
+                  style: Theme.of(context)
+                      .textTheme
+                      .bodySmall
+                      ?.copyWith(
+                        color:
+                            AppColors.textSecondary,
+                        fontSize: 13,
+                      ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 10),
+          Container(
+            constraints: const BoxConstraints(
+              minWidth: 48,
+              minHeight: 44,
+            ),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 11,
+              vertical: 9,
+            ),
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(
+                AppSizes.radiusMedium,
+              ),
+              border: Border.all(
+                color: AppColors.border,
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(
+                  Icons.groups_rounded,
+                  color: AppColors.primary,
+                  size: 19,
+                ),
+                const SizedBox(width: 5),
+                Text(
+                  '$cantidadJugadores',
+                  style: const TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
 
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        height: 110,
-        decoration: BoxDecoration(
-          color: colorShot,
-          borderRadius: BorderRadius.circular(28),
-          boxShadow: [
-            BoxShadow(
-              color: colorShot.withAlpha(128),
-              blurRadius: 32,
-              offset: const Offset(0, 16),
-            ),
-            BoxShadow(
-              color: textoPrincipal.withAlpha(77),
-              blurRadius: 20,
-              offset: const Offset(0, 8),
-            ),
-          ],
+// ===========================================================
+// TARJETA
+// ===========================================================
+
+class TarjetaTipoJuego extends StatelessWidget {
+  const TarjetaTipoJuego({
+    super.key,
+    required this.tipo,
+    required this.seleccionado,
+    required this.pantallaBaja,
+    required this.onTap,
+  });
+
+  final TipoJuego tipo;
+  final bool seleccionado;
+  final bool pantallaBaja;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      selected: seleccionado,
+      label:
+          '${tipo.nombreVisible}. ${tipo.descripcion}',
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(
+          AppSizes.radiusExtraLarge,
         ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(28),
-          child: Stack(
-            children: [
-              // Shot glass effect
-              Positioned(
-                right: 16,
-                top: 16,
-                child: Transform.rotate(
-                  angle: -0.1,
-                  child: Container(
-                    width: 44,
-                    height: 60,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withAlpha(51),
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(
-                        color: Colors.white.withAlpha(128),
-                        width: 1.5,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(
+            AppSizes.radiusExtraLarge,
+          ),
+          splashColor:
+              tipo.color.withValues(alpha: 0.08),
+          highlightColor:
+              tipo.color.withValues(alpha: 0.04),
+          child: AnimatedContainer(
+            duration:
+                const Duration(milliseconds: 280),
+            curve: Curves.easeOutCubic,
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: AppColors.surfaceElevated,
+              borderRadius: BorderRadius.circular(
+                AppSizes.radiusExtraLarge,
+              ),
+              border: Border.all(
+                color: seleccionado
+                    ? tipo.color.withValues(
+                        alpha: 0.42,
+                      )
+                    : AppColors.border,
+                width: seleccionado ? 1.6 : 1,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: seleccionado
+                      ? tipo.color.withValues(
+                          alpha: 0.18,
+                        )
+                      : AppColors.shadow,
+                  blurRadius:
+                      seleccionado ? 28 : 16,
+                  spreadRadius:
+                      seleccionado ? 1 : 0,
+                  offset: const Offset(0, 12),
+                ),
+              ],
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(
+                AppSizes.radiusExtraLarge,
+              ),
+              child: Stack(
+                children: [
+                  Positioned(
+                    top: -58,
+                    right: -45,
+                    child: Container(
+                      width: 175,
+                      height: 175,
+                      decoration: BoxDecoration(
+                        color: tipo.color
+                            .withValues(alpha: 0.06),
+                        shape: BoxShape.circle,
                       ),
                     ),
                   ),
-                ),
-              ),
-              
-              // Gradient overlay
-              Positioned.fill(
-                child: Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        Colors.transparent,
-                        Colors.black.withAlpha(128),
-                      ],
+                  Positioned(
+                    bottom: -68,
+                    left: -50,
+                    child: Container(
+                      width: 190,
+                      height: 190,
+                      decoration: BoxDecoration(
+                        color: tipo.color
+                            .withValues(alpha: 0.04),
+                        shape: BoxShape.circle,
+                      ),
                     ),
                   ),
-                ),
-              ),
-              
-              // Content
-              Padding(
-                padding: const EdgeInsets.fromLTRB(24, 20, 24, 20),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    // Shot emoji HERO
-                    Hero(
-                      tag: 'shot-${tipo['titulo']}',
-                      child: Container(
-                        width: 56,
-                        height: 56,
-                        decoration: BoxDecoration(
-                          color: Colors.white.withAlpha(153),
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: Colors.white,
-                            width: 3,
+                  Positioned(
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    child: Container(
+                      height: seleccionado ? 7 : 5,
+                      color: tipo.color,
+                    ),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.fromLTRB(
+                      pantallaBaja ? 14 : 18,
+                      pantallaBaja ? 16 : 20,
+                      pantallaBaja ? 14 : 18,
+                      pantallaBaja ? 14 : 18,
+                    ),
+                    child: Column(
+                      children: [
+                        Expanded(
+                          flex: 6,
+                          child: Center(
+                            child: Hero(
+                              tag: 'shot-${tipo.titulo}',
+                              child: AnimatedContainer(
+                                duration: const Duration(
+                                  milliseconds: 280,
+                                ),
+                                curve: Curves.easeOutCubic,
+                                width: double.infinity,
+                                constraints: BoxConstraints(
+                                  maxWidth: seleccionado
+                                      ? pantallaBaja
+                                          ? 210
+                                          : 260
+                                      : pantallaBaja
+                                          ? 190
+                                          : 235,
+                                  maxHeight: seleccionado
+                                      ? pantallaBaja
+                                          ? 210
+                                          : 260
+                                      : pantallaBaja
+                                          ? 190
+                                          : 235,
+                                ),
+                                padding: EdgeInsets.all(
+                                  pantallaBaja ? 4 : 6,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: tipo.color.withValues(
+                                    alpha: 0.055,
+                                  ),
+                                  borderRadius: BorderRadius.circular(
+                                    AppSizes.radiusExtraLarge,
+                                  ),
+                                ),
+                                child: Image.asset(
+                                  tipo.icono,
+                                  fit: BoxFit.contain,
+                                  alignment: Alignment.center,
+                                  filterQuality: FilterQuality.high,
+                                  gaplessPlayback: true,
+                                  semanticLabel: tipo.nombreVisible,
+                                  errorBuilder: (
+                                    context,
+                                    error,
+                                    stackTrace,
+                                  ) {
+                                    return Center(
+                                      child: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(
+                                            Icons.image_not_supported_outlined,
+                                            size: 42,
+                                            color: tipo.color,
+                                          ),
+                                          const SizedBox(height: 8),
+                                          Text(
+                                            'Imagen no disponible',
+                                            textAlign: TextAlign.center,
+                                            style: TextStyle(
+                                              color: tipo.color,
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  },
+                                  frameBuilder: (
+                                    context,
+                                    child,
+                                    frame,
+                                    wasSynchronouslyLoaded,
+                                  ) {
+                                    if (wasSynchronouslyLoaded ||
+                                        frame != null) {
+                                      return AnimatedOpacity(
+                                        opacity: 1,
+                                        duration: const Duration(
+                                          milliseconds: 250,
+                                        ),
+                                        child: child,
+                                      );
+                                    }
+
+                                    return Center(
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 3,
+                                        color: tipo.color,
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+                            ),
                           ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withAlpha(77),
-                              blurRadius: 16,
-                              offset: const Offset(0, 6),
+                        ),
+                        SizedBox(
+                          height: pantallaBaja ? 8 : 12,
+                        ),
+                        Container(
+                          width: double.infinity,
+                          padding: EdgeInsets.all(
+                            pantallaBaja ? 16 : 19,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.surface,
+                            borderRadius:
+                                BorderRadius.circular(
+                              AppSizes.radiusLarge,
+                            ),
+                            border: Border.all(
+                              color: AppColors.border,
+                            ),
+                          ),
+                          child: Column(
+                            children: [
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment
+                                        .center,
+                                children: [
+                                  Icon(
+                                    tipo.iconoIntensidad,
+                                    color: tipo.color,
+                                    size: 20,
+                                  ),
+                                  const SizedBox(
+                                    width: 7,
+                                  ),
+                                  Flexible(
+                                    child: Text(
+                                      tipo.intensidad,
+                                      maxLines: 1,
+                                      overflow:
+                                          TextOverflow
+                                              .ellipsis,
+                                      style: Theme.of(
+                                        context,
+                                      )
+                                          .textTheme
+                                          .labelMedium
+                                          ?.copyWith(
+                                            color:
+                                                tipo.color,
+                                            fontWeight:
+                                                FontWeight
+                                                    .w800,
+                                          ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 9),
+                              Text(
+                                tipo.nombreVisible,
+                                textAlign:
+                                    TextAlign.center,
+                                maxLines: 2,
+                                overflow:
+                                    TextOverflow.ellipsis,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleLarge
+                                    ?.copyWith(
+                                      color: AppColors
+                                          .textPrimary,
+                                      fontSize:
+                                          pantallaBaja
+                                              ? 19
+                                              : 22,
+                                      fontWeight:
+                                          FontWeight.w900,
+                                      height: 1.15,
+                                    ),
+                              ),
+                              const SizedBox(height: 7),
+                              Text(
+                                tipo.descripcion,
+                                textAlign:
+                                    TextAlign.center,
+                                maxLines: 3,
+                                overflow:
+                                    TextOverflow.ellipsis,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyMedium
+                                    ?.copyWith(
+                                      color: AppColors
+                                          .textSecondary,
+                                      fontSize:
+                                          pantallaBaja
+                                              ? 13
+                                              : 14,
+                                      fontWeight:
+                                          FontWeight.w500,
+                                      height: 1.4,
+                                    ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 14),
+                        Row(
+                          mainAxisAlignment:
+                              MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              seleccionado
+                                  ? Icons
+                                      .swipe_rounded
+                                  : Icons
+                                      .touch_app_rounded,
+                              color:
+                                  AppColors.textMuted,
+                              size: 18,
+                            ),
+                            const SizedBox(width: 7),
+                            Text(
+                              seleccionado
+                                  ? 'Desliza para cambiar'
+                                  : 'Toca para seleccionar',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(
+                                    color: AppColors
+                                        .textMuted,
+                                    fontSize: 12,
+                                    fontWeight:
+                                        FontWeight.w600,
+                                  ),
                             ),
                           ],
                         ),
-                        child: Center(
-                          child: Text(
-                            emojiShot,
-                            style: const TextStyle(
-                              fontSize: 26,
-                              fontWeight: FontWeight.bold,
-                              shadows: [
-                                Shadow(
-                                  color: Colors.black87,
-                                  offset: Offset(1, 1),
-                                  blurRadius: 4,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
+                      ],
                     ),
-                    
-                    const SizedBox(width: 20),
-                    
-                    // Shot info
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            tipo['titulo'] as String,
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w900,
-                              color: Colors.white,
-                              letterSpacing: 1.0,
-                              shadows: [
-                                Shadow(
-                                  color: Colors.black87,
-                                  offset: Offset(0, 2),
-                                  blurRadius: 4,
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Flexible(
-                            child: Text(
-                              tipo['descripcion'] as String,
-                              style: TextStyle(
-                                color: Colors.white.withAlpha(230),
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                                height: 1.3,
-                              ),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
-                      ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ===========================================================
+// INDICADORES
+// ===========================================================
+
+class _IndicadoresCategorias extends StatelessWidget {
+  const _IndicadoresCategorias({
+    required this.cantidad,
+    required this.seleccionado,
+  });
+
+  final int cantidad;
+  final int seleccionado;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      label:
+          'Categoría ${seleccionado + 1} de $cantidad',
+      child: Row(
+        mainAxisAlignment:
+            MainAxisAlignment.center,
+        children: List.generate(
+          cantidad,
+          (index) {
+            final activo =
+                index == seleccionado;
+
+            return AnimatedContainer(
+              duration:
+                  const Duration(milliseconds: 230),
+              curve: Curves.easeOut,
+              width: activo ? 24 : 7,
+              height: 7,
+              margin:
+                  const EdgeInsets.symmetric(
+                horizontal: 4,
+              ),
+              decoration: BoxDecoration(
+                color: activo
+                    ? AppColors.primary
+                    : AppColors.border,
+                borderRadius:
+                    BorderRadius.circular(20),
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+}
+
+// ===========================================================
+// BOTÓN INICIAR
+// ===========================================================
+
+class _BotonJugarCategoria extends StatelessWidget {
+  const _BotonJugarCategoria({
+    required this.tipo,
+    required this.navegando,
+    required this.onPressed,
+  });
+
+  final TipoJuego tipo;
+  final bool navegando;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton(
+        onPressed: navegando ? null : onPressed,
+        child: AnimatedSwitcher(
+          duration:
+              const Duration(milliseconds: 220),
+          child: navegando
+              ? const SizedBox(
+                  key: ValueKey('loading'),
+                  width: 23,
+                  height: 23,
+                  child:
+                      CircularProgressIndicator(
+                    strokeWidth: 3,
+                    color:
+                        AppColors.textOnPrimary,
+                    strokeCap: StrokeCap.round,
+                  ),
+                )
+              : Row(
+                  key: ValueKey(tipo.titulo),
+                  mainAxisAlignment:
+                      MainAxisAlignment.center,
+                  children: [
+                    const Icon(
+                      Icons.play_arrow_rounded,
+                      size: 25,
                     ),
-                    
-                    // Shot arrow
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withAlpha(230),
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withAlpha(102),
-                            blurRadius: 16,
-                            offset: const Offset(0, 6),
-                          ),
-                        ],
-                      ),
-                      child: const Icon(
-                        Icons.arrow_forward_ios_rounded,
-                        color: textoPrincipal,
-                        size: 20,
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: Text(
+                        'Jugar ${tipo.nombreVisible}',
+                        maxLines: 1,
+                        overflow:
+                            TextOverflow.ellipsis,
                       ),
                     ),
                   ],
                 ),
-              ),
-            ],
-          ),
         ),
       ),
     );
