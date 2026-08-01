@@ -1103,31 +1103,37 @@ class _TarjetaCastigo extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        Container(
-                          width:
-                              pantallaBaja ? 44 : 48,
-                          height:
-                              pantallaBaja ? 44 : 48,
-                          decoration:
-                              BoxDecoration(
-                            color: AppColors
-                                .textOnPrimary
-                                .withValues(
-                                  alpha: 0.14,
-                                ),
-                            borderRadius:
-                                BorderRadius.circular(
-                              AppSizes.radiusMedium,
-                            ),
-                          ),
-                          child: const Icon(
-                            Icons
-                                .local_fire_department_rounded,
-                            color: AppColors
-                                .textOnPrimary,
-                            size: 27,
-                          ),
+                      Container(
+                        width: pantallaBaja ? 58 : 64,
+                        height: pantallaBaja ? 58 : 64,
+                    padding: const EdgeInsets.all(5),
+                    decoration: BoxDecoration(
+                      color: AppColors.textOnPrimary.withValues(
+                      alpha: 0.14,
                         ),
+                    borderRadius: BorderRadius.circular(
+                      AppSizes.radiusMedium,
+                        ),
+                      ),
+                  child: Image.asset(
+                    'assets/images/castigo.png',
+                  fit: BoxFit.contain,
+                  filterQuality: FilterQuality.high,
+                  gaplessPlayback: true,
+                  errorBuilder: (
+                  context,
+                  error,
+                  stackTrace,
+                  ) {
+      return const Icon(
+        Icons.sentiment_very_satisfied_rounded,
+        color: AppColors.textOnPrimary,
+        size: 30,
+      );
+    },
+  ),
+),
+
                         const SizedBox(width: 13),
                         Expanded(
                           child: Column(
