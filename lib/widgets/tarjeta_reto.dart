@@ -7,9 +7,7 @@ import '../theme.dart';
 
 class TarjetaReto extends StatelessWidget {
   const TarjetaReto({
-    super.key,
-    required this.textoReto,
-    required this.fadeAnimation,
+    required this.textoReto, required this.fadeAnimation, super.key,
     this.retoEspecial,
   });
 

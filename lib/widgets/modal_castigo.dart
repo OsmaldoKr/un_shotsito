@@ -4,9 +4,7 @@ import '../theme.dart';
 
 class ModalCastigo extends StatelessWidget {
   const ModalCastigo({
-    super.key,
-    required this.textoCastigo,
-    required this.onCerrar,
+    required this.textoCastigo, required this.onCerrar, super.key,
   });
 
   final String textoCastigo;

@@ -4,8 +4,7 @@ import 'pantalla_reto.dart';
 
 class PantallaTipoJuego extends StatefulWidget {
   const PantallaTipoJuego({
-    super.key,
-    required this.jugadores,
+    required this.jugadores, super.key,
   });
 
   final List<String> jugadores;
@@ -188,7 +187,6 @@ class _PantallaTipoJuegoState extends State<PantallaTipoJuego> {
                   child: PageView.builder(
                     controller: _pageController,
                     itemCount: _tiposJuego.length,
-                    padEnds: true,
                     physics:
                         const BouncingScrollPhysics(),
                     onPageChanged: (index) {
@@ -468,11 +466,7 @@ class _EncabezadoTipoJuego extends StatelessWidget {
 
 class TarjetaTipoJuego extends StatelessWidget {
   const TarjetaTipoJuego({
-    super.key,
-    required this.tipo,
-    required this.seleccionado,
-    required this.pantallaBaja,
-    required this.onTap,
+    required this.tipo, required this.seleccionado, required this.pantallaBaja, required this.onTap, super.key,
   });
 
   final TipoJuego tipo;
@@ -625,7 +619,6 @@ class TarjetaTipoJuego extends StatelessWidget {
                                 child: Image.asset(
                                   tipo.icono,
                                   fit: BoxFit.contain,
-                                  alignment: Alignment.center,
                                   filterQuality: FilterQuality.high,
                                   gaplessPlayback: true,
                                   semanticLabel: tipo.nombreVisible,

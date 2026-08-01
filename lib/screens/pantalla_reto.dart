@@ -13,9 +13,7 @@ import '../widgets/tarjeta_reto.dart';
 
 class PantallaReto extends StatefulWidget {
   const PantallaReto({
-    super.key,
-    required this.jugadores,
-    required this.tipo,
+    required this.jugadores, required this.tipo, super.key,
   });
 
   final List<String> jugadores;

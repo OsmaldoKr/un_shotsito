@@ -166,7 +166,6 @@ abstract final class AppTheme {
   static ThemeData get light {
     final colorScheme = ColorScheme.fromSeed(
       seedColor: AppColors.primary,
-      brightness: Brightness.light,
       primary: AppColors.primary,
       onPrimary: AppColors.textOnPrimary,
       primaryContainer: AppColors.primaryLight,
@@ -331,7 +330,6 @@ abstract final class AppTheme {
       ),
       side: BorderSide(
         color: AppColors.border,
-        width: 1,
       ),
     ),
   );

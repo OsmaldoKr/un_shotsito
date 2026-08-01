@@ -4,9 +4,7 @@ import '../theme.dart';
 
 class ModalRetoCompletado extends StatelessWidget {
   const ModalRetoCompletado({
-    super.key,
-    required this.descripcionReto,
-    required this.onCerrar,
+    required this.descripcionReto, required this.onCerrar, super.key,
   });
 
   final String descripcionReto;

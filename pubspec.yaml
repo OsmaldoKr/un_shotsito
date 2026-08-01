@@ -2,19 +2,17 @@ name: un_shotsito
 description: "UnShotsito - Juego de retos desarrollado por FratresPixel"
 publish_to: "none"
 
-# 1.0.0: versión visible de la aplicación.
-# +1: número interno de compilación.
 version: 1.0.0+1
 
 environment:
-  sdk: ">=3.9.2 <4.0.0"
+  sdk: ">=3.12.2 <4.0.0"
 
 dependencies:
   flutter:
     sdk: flutter
 
   cupertino_icons: ^1.0.8
-  flutter_svg: ^2.0.0
+  flutter_svg: ^2.2.3
 
 dev_dependencies:
   flutter_test:
@@ -28,22 +26,24 @@ flutter:
 
   assets:
     - assets/images/
-    - assets/images/Buttons/
 
 flutter_launcher_icons:
-  android: "launcher_icon"
+  android: true
   ios: true
+  web:
+    generate: false
+  windows:
+    generate: true
+  macos:
+    generate: true
 
   image_path: "assets/images/logo_UnShotsito.png"
 
-  # Ícono adaptativo de Android.
   adaptive_icon_background: "#F1E9DF"
-  adaptive_icon_foreground: "assets/images/logo_UnShotsito_foreground.png"
+  adaptive_icon_foreground: "assets/images/logo_UnShotsito.png"
 
-  # Evita transparencia no admitida en el ícono de iOS.
+  adaptive_icon_monochrome: "assets/images/logo_UnShotsito.png"
+
   remove_alpha_ios: true
-
-  # Android 12 y versiones posteriores.
-  adaptive_icon_monochrome: "assets/images/logo_UnShotsito_monochrome.png"
 
   min_sdk_android: 21

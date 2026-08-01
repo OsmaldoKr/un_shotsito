@@ -1,9 +1,4 @@
 class RetoEspecial {
-  final String id;
-  final String descripcion;
-  final int turnosRestantes;
-  final int turnosTotales;
-  final DateTime creado;
 
   const RetoEspecial({
     required this.id,
@@ -14,6 +9,21 @@ class RetoEspecial {
   })  : assert(turnosTotales > 0),
         assert(turnosRestantes >= 0),
         assert(turnosRestantes <= turnosTotales);
+
+  factory RetoEspecial.fromJson(Map<String, dynamic> json) {
+    return RetoEspecial(
+      id: json['id'] as String,
+      descripcion: json['descripcion'] as String,
+      turnosRestantes: json['turnosRestantes'] as int,
+      turnosTotales: json['turnosTotales'] as int,
+      creado: DateTime.parse(json['creado'] as String),
+    );
+  }
+  final String id;
+  final String descripcion;
+  final int turnosRestantes;
+  final int turnosTotales;
+  final DateTime creado;
 
   RetoEspecial copyWith({
     String? id,
@@ -68,16 +78,6 @@ class RetoEspecial {
       'turnosTotales': turnosTotales,
       'creado': creado.toIso8601String(),
     };
-  }
-
-  factory RetoEspecial.fromJson(Map<String, dynamic> json) {
-    return RetoEspecial(
-      id: json['id'] as String,
-      descripcion: json['descripcion'] as String,
-      turnosRestantes: json['turnosRestantes'] as int,
-      turnosTotales: json['turnosTotales'] as int,
-      creado: DateTime.parse(json['creado'] as String),
-    );
   }
 }
 

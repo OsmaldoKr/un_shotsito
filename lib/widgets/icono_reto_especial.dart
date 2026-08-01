@@ -5,9 +5,7 @@ import '../theme.dart';
 
 class IconoRetoEspecial extends StatefulWidget {
   const IconoRetoEspecial({
-    super.key,
-    required this.reto,
-    required this.onTap,
+    required this.reto, required this.onTap, super.key,
   });
 
   final RetoEspecial reto;

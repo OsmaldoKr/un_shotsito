@@ -1,22 +1,19 @@
 {
-    // Use IntelliSense to learn about possible attributes.
-    // Hover to view descriptions of existing attributes.
-    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "un_shotsito",
+            "name": "Flutter (Debug)",
             "request": "launch",
             "type": "dart"
         },
         {
-            "name": "un_shotsito (profile mode)",
+            "name": "Flutter (Profile)",
             "request": "launch",
             "type": "dart",
             "flutterMode": "profile"
         },
         {
-            "name": "un_shotsito (release mode)",
+            "name": "Flutter (Release)",
             "request": "launch",
             "type": "dart",
             "flutterMode": "release"

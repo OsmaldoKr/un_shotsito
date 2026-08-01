@@ -4,9 +4,7 @@ import '../theme.dart';
 
 class ModalRetoEspecial extends StatelessWidget {
   const ModalRetoEspecial({
-    super.key,
-    required this.reto,
-    required this.onCerrar,
+    required this.reto, required this.onCerrar, super.key,
   });
 
   final RetoEspecial reto;

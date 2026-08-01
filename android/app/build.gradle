@@ -6,33 +6,52 @@ plugins {
 
 android {
     namespace = "com.fratrespixel.unshotsito"
-    compileSdk = 34
+
+    // Google Play exigirá API 36 para apps nuevas
+    // y actualizaciones desde el 31 de agosto de 2026.
+    compileSdk = 36
+
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_11.toString()
+        jvmTarget = JavaVersion.VERSION_17.toString()
     }
 
     defaultConfig {
         applicationId = "com.fratrespixel.unshotsito"
-        minSdkVersion flutter.minSdkVersion
-        targetSdk = 34
-        versionCode = 1
-        versionName = "1.0.0"
+
+        // Mantiene compatibilidad con la versión mínima
+        // configurada por Flutter.
+        minSdk = flutter.minSdkVersion
+
+        // Requerido próximamente por Google Play.
+        targetSdk = 36
+
+        // Estos valores se leen desde pubspec.yaml.
+        versionCode = flutter.versionCode
+        versionName = flutter.versionName
     }
 
     buildTypes {
-        release {
-            minifyEnabled false
-            shrinkResources false
+        getByName("debug") {
+            isMinifyEnabled = false
+            isShrinkResources = false
         }
-        debug {
-            minifyEnabled false
+
+        getByName("release") {
+            // Déjalo desactivado mientras desarrollamos.
+            // Luego puede activarse junto con ProGuard.
+            isMinifyEnabled = false
+            isShrinkResources = false
+
+            // Temporalmente permite generar una versión release.
+            // Para Google Play debes reemplazarla por tu firma privada.
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
 }
