@@ -2,18 +2,20 @@ import 'package:flutter/material.dart';
 
 import '../data/retos_especiales.dart';
 import '../theme.dart';
+import 'estado_reto_especial.dart';
 
 class IconoRetoEspecial extends StatefulWidget {
   const IconoRetoEspecial({
-    required this.reto, required this.onTap, super.key,
+    required this.reto,
+    required this.onTap,
+    super.key,
   });
 
   final RetoEspecial reto;
   final VoidCallback onTap;
 
   @override
-  State<IconoRetoEspecial> createState() =>
-      _IconoRetoEspecialState();
+  State<IconoRetoEspecial> createState() => _IconoRetoEspecialState();
 }
 
 class _IconoRetoEspecialState extends State<IconoRetoEspecial> {
@@ -29,31 +31,29 @@ class _IconoRetoEspecialState extends State<IconoRetoEspecial> {
             ? 72.0
             : 64.0;
 
-    final progreso = widget.reto.turnosTotales <= 0
-        ? 0.0
-        : widget.reto.turnosRestantes /
-            widget.reto.turnosTotales;
+    // Mismo valor que usa ModalRetoEspecial: se calcula una sola vez
+    // en el modelo, así los dos widgets siempre muestran el mismo
+    // progreso y el mismo color para el mismo reto.
+    final progreso = widget.reto.progreso.clamp(0.0, 1.0);
 
-    final turnosRestantes = widget.reto.turnosRestantes
-        .clamp(0, widget.reto.turnosTotales);
+    final turnosTotalesValidos =
+        widget.reto.turnosTotales > 0 ? widget.reto.turnosTotales : 0;
+    final turnosRestantes = turnosTotalesValidos == 0
+        ? 0
+        : widget.reto.turnosRestantes.clamp(0, turnosTotalesValidos);
 
-    final colorEstado = _obtenerColorEstado(
-      progreso.clamp(0, 1),
-    );
+    final colorEstado = colorEstadoRetoEspecial(progreso);
 
     return Semantics(
       button: true,
-      label:
-          'Reto especial con $turnosRestantes turnos restantes',
+      label: 'Reto especial con $turnosRestantes turnos restantes',
       child: AnimatedScale(
         scale: _presionado ? 0.93 : 1,
         duration: const Duration(milliseconds: 120),
         curve: Curves.easeOut,
         child: Material(
           color: Colors.transparent,
-          borderRadius: BorderRadius.circular(
-            AppSizes.radiusLarge,
-          ),
+          borderRadius: BorderRadius.circular(AppSizes.radiusLarge),
           child: InkWell(
             onTap: widget.onTap,
             onHighlightChanged: (valor) {
@@ -61,28 +61,18 @@ class _IconoRetoEspecialState extends State<IconoRetoEspecial> {
                 _presionado = valor;
               });
             },
-            borderRadius: BorderRadius.circular(
-              AppSizes.radiusLarge,
-            ),
-            splashColor: AppColors.primary.withValues(
-              alpha: 0.10,
-            ),
-            highlightColor: AppColors.primary.withValues(
-              alpha: 0.05,
-            ),
+            borderRadius: BorderRadius.circular(AppSizes.radiusLarge),
+            splashColor: AppColors.primary.withValues(alpha: 0.10),
+            highlightColor: AppColors.primary.withValues(alpha: 0.05),
             child: Container(
               width: tamano,
               height: tamano,
               padding: const EdgeInsets.all(6),
               decoration: BoxDecoration(
                 color: AppColors.surfaceElevated,
-                borderRadius: BorderRadius.circular(
-                  AppSizes.radiusLarge,
-                ),
+                borderRadius: BorderRadius.circular(AppSizes.radiusLarge),
                 border: Border.all(
-                  color: colorEstado.withValues(
-                    alpha: 0.28,
-                  ),
+                  color: colorEstado.withValues(alpha: 0.28),
                   width: 1.2,
                 ),
                 boxShadow: const [
@@ -111,12 +101,11 @@ class _IconoRetoEspecialState extends State<IconoRetoEspecial> {
                   Positioned.fill(
                     child: IgnorePointer(
                       child: CircularProgressIndicator(
-                        value: progreso.clamp(0, 1),
+                        value: progreso,
                         strokeWidth: 2.5,
                         strokeCap: StrokeCap.round,
                         color: colorEstado,
-                        backgroundColor:
-                            AppColors.surfaceMuted,
+                        backgroundColor: AppColors.surfaceMuted,
                       ),
                     ),
                   ),
@@ -126,12 +115,8 @@ class _IconoRetoEspecialState extends State<IconoRetoEspecial> {
                     right: -5,
                     top: -5,
                     child: AnimatedSwitcher(
-                      duration:
-                          const Duration(milliseconds: 220),
-                      transitionBuilder: (
-                        child,
-                        animation,
-                      ) {
+                      duration: const Duration(milliseconds: 220),
+                      transitionBuilder: (child, animation) {
                         return ScaleTransition(
                           scale: animation,
                           child: FadeTransition(
@@ -152,11 +137,9 @@ class _IconoRetoEspecialState extends State<IconoRetoEspecial> {
                         ),
                         decoration: BoxDecoration(
                           color: colorEstado,
-                          borderRadius:
-                              BorderRadius.circular(14),
+                          borderRadius: BorderRadius.circular(14),
                           border: Border.all(
-                            color:
-                                AppColors.surfaceElevated,
+                            color: AppColors.surfaceElevated,
                             width: 2,
                           ),
                           boxShadow: const [
@@ -191,9 +174,7 @@ class _IconoRetoEspecialState extends State<IconoRetoEspecial> {
                       decoration: BoxDecoration(
                         color: AppColors.surfaceElevated,
                         shape: BoxShape.circle,
-                        border: Border.all(
-                          color: AppColors.border,
-                        ),
+                        border: Border.all(color: AppColors.border),
                       ),
                     ),
                   ),
@@ -204,17 +185,5 @@ class _IconoRetoEspecialState extends State<IconoRetoEspecial> {
         ),
       ),
     );
-  }
-
-  Color _obtenerColorEstado(double progreso) {
-    if (progreso <= 0.25) {
-      return AppColors.error;
-    }
-
-    if (progreso <= 0.50) {
-      return AppColors.warning;
-    }
-
-    return AppColors.punishment;
   }
 }

@@ -4,23 +4,6 @@ import 'castigos.dart';
 import 'retos.dart';
 import 'retos_especiales.dart';
 
-/// Generador aleatorio compartido por todas las funciones.
-///
-/// Puede reemplazarse en pruebas para obtener resultados predecibles.
-Random _random = Random();
-
-/// Permite establecer un generador personalizado.
-///
-/// Resulta útil para pruebas unitarias:
-///
-/// ```dart
-/// configurarGeneradorAleatorio(Random(10));
-/// ```
-void configurarGeneradorAleatorio(Random random) {
-  _random = random;
-}
-
-/// Modelo utilizado para representar un reto normal.
 class Reto {
   const Reto({
     required this.descripcion,
@@ -34,10 +17,7 @@ class Reto {
 
   @override
   String toString() {
-    return 'Reto('
-        'categoria: $categoria, '
-        'descripcion: $descripcion'
-        ')';
+    return 'Reto(categoria: $categoria, descripcion: $descripcion)';
   }
 
   @override
@@ -49,21 +29,145 @@ class Reto {
   }
 
   @override
-  int get hashCode => Object.hash(
-        descripcion,
-        categoria,
-      );
+  int get hashCode => Object.hash(descripcion, categoria);
 }
 
-// ===========================================================
-// RETOS NORMALES
-// ===========================================================
-
-/// Obtiene un reto aleatorio perteneciente a una categoría.
+/// Maneja los mazos (barajas) de textos únicos por categoría.
 ///
-/// La búsqueda intenta primero una coincidencia exacta. Si no existe,
-/// compara los nombres ignorando mayúsculas, minúsculas y espacios
-/// externos.
+/// Evita que una misma categoría repita el último texto sacado al
+/// reiniciar el mazo, y evita duplicados dentro de un mismo lote
+/// cuando se extraen varios textos con [extraerVarios].
+class _GestorMazos {
+  _GestorMazos(this._random);
+
+  Random _random;
+  final Map<String, List<String>> _mazos = {};
+  final Map<String, String?> _ultimoPorCategoria = {};
+
+  void actualizarRandom(Random random) {
+    _random = random;
+    reiniciar();
+  }
+
+  void reiniciar() {
+    _mazos.clear();
+    _ultimoPorCategoria.clear();
+  }
+
+  String extraerUno(
+    String clave,
+    List<String> opciones, {
+    String? anteriorForzado,
+  }) {
+    final anterior = anteriorForzado ?? _ultimoPorCategoria[clave];
+    final texto = _extraerDelMazo(
+      clave: clave,
+      opcionesActuales: opciones,
+      ultimoTexto: anterior,
+    );
+    _ultimoPorCategoria[clave] = texto;
+    return texto;
+  }
+
+  /// Extrae [cantidad] textos, únicos entre sí dentro del lote,
+  /// respetando el mazo persistente de la categoría.
+  List<String> extraerVarios(
+    String clave,
+    List<String> opciones,
+    int cantidad,
+  ) {
+    final cantidadFinal = min(cantidad, opciones.length);
+    final resultado = <String>[];
+    final usadosEnLote = <String>{};
+
+    // Cota de seguridad para no entrar en bucle infinito si algo
+    // inesperado ocurre con las opciones (p. ej. todas duplicadas).
+    var intentosRestantes = cantidadFinal * 5 + 5;
+
+    while (resultado.length < cantidadFinal && intentosRestantes > 0) {
+      intentosRestantes--;
+      final texto = extraerUno(clave, opciones);
+
+      if (usadosEnLote.add(_normalizarTexto(texto))) {
+        resultado.add(texto);
+      }
+    }
+
+    return resultado;
+  }
+
+  String _extraerDelMazo({
+    required String clave,
+    required List<String> opcionesActuales,
+    String? ultimoTexto,
+  }) {
+    var mazo = _mazos[clave];
+
+    if (mazo == null ||
+        mazo.isEmpty ||
+        !_mazoCoincideConOpciones(mazo, opcionesActuales)) {
+      mazo = _crearMazo(opcionesActuales, ultimoTexto: ultimoTexto);
+      _mazos[clave] = mazo;
+    }
+
+    return mazo.removeLast();
+  }
+
+  List<String> _crearMazo(
+    Iterable<String> opciones, {
+    String? ultimoTexto,
+  }) {
+    final mazo = _limpiarListaTextos(opciones)..shuffle(_random);
+
+    if (mazo.length > 1 && ultimoTexto != null) {
+      final ultimoNormalizado = _normalizarTexto(ultimoTexto);
+      final indiceFinal = mazo.length - 1;
+
+      // removeLast() será la próxima carta: si coincide con la
+      // anterior, se mueve al inicio para evitar dos ciclos seguidos
+      // que empiecen con el mismo texto.
+      if (_normalizarTexto(mazo[indiceFinal]) == ultimoNormalizado) {
+        final repetido = mazo.removeAt(indiceFinal);
+        mazo.insert(0, repetido);
+      }
+    }
+
+    return mazo;
+  }
+
+  bool _mazoCoincideConOpciones(
+    List<String> mazo,
+    List<String> opcionesActuales,
+  ) {
+    final opcionesNormalizadas =
+        opcionesActuales.map(_normalizarTexto).toSet();
+    return mazo.every(
+      (elemento) => opcionesNormalizadas.contains(_normalizarTexto(elemento)),
+    );
+  }
+}
+
+Random _random = Random();
+final _GestorMazos _gestorRetos = _GestorMazos(_random);
+final _GestorMazos _gestorCastigos = _GestorMazos(_random);
+
+List<String> _mazoRetosEspeciales = [];
+String? _ultimoRetoEspecialId;
+
+void configurarGeneradorAleatorio(Random random) {
+  _random = random;
+  _gestorRetos.actualizarRandom(random);
+  _gestorCastigos.actualizarRandom(random);
+  reiniciarMazos();
+}
+
+void reiniciarMazos() {
+  _gestorRetos.reiniciar();
+  _gestorCastigos.reiniciar();
+  _mazoRetosEspeciales = [];
+  _ultimoRetoEspecialId = null;
+}
+
 Reto obtenerRetoAleatorio(
   String categoria, {
   String? descripcionAnterior,
@@ -77,34 +181,29 @@ Reto obtenerRetoAleatorio(
     );
   }
 
-  final entradaCategoria = _buscarCategoria(
-    categoriaLimpia,
-  );
+  final entradaCategoria = _buscarCategoria(categoriaLimpia);
 
-  if (entradaCategoria == null ||
-      entradaCategoria.value.isEmpty) {
+  if (entradaCategoria == null || entradaCategoria.value.isEmpty) {
     return Reto(
-      descripcion:
-          'No hay retos disponibles para esta categoría.',
+      descripcion: 'No hay retos disponibles para esta categoría.',
       categoria: categoriaLimpia,
     );
   }
 
-  final retosDisponibles = _limpiarListaTextos(
-    entradaCategoria.value,
-  );
+  final retosValidos = _limpiarListaTextos(entradaCategoria.value);
 
-  if (retosDisponibles.isEmpty) {
+  if (retosValidos.isEmpty) {
     return Reto(
-      descripcion:
-          'No hay retos disponibles para esta categoría.',
+      descripcion: 'No hay retos disponibles para esta categoría.',
       categoria: entradaCategoria.key,
     );
   }
 
-  final descripcion = _seleccionarTextoAleatorio(
-    opciones: retosDisponibles,
-    textoAnterior: descripcionAnterior,
+  final claveCategoria = _normalizarTexto(entradaCategoria.key);
+  final descripcion = _gestorRetos.extraerUno(
+    claveCategoria,
+    retosValidos,
+    anteriorForzado: descripcionAnterior,
   );
 
   return Reto(
@@ -113,10 +212,6 @@ Reto obtenerRetoAleatorio(
   );
 }
 
-/// Obtiene varios retos aleatorios de una categoría sin repetir.
-///
-/// Si la cantidad solicitada supera el total disponible, devuelve
-/// todos los retos válidos de la categoría.
 List<Reto> obtenerRetosAleatorios(
   String categoria, {
   int cantidad = 3,
@@ -126,89 +221,111 @@ List<Reto> obtenerRetosAleatorios(
   }
 
   final categoriaLimpia = _limpiarTexto(categoria);
-  final entradaCategoria = _buscarCategoria(
-    categoriaLimpia,
-  );
+  final entradaCategoria = _buscarCategoria(categoriaLimpia);
 
   if (entradaCategoria == null) {
     return [];
   }
 
-  final retosDisponibles = _limpiarListaTextos(
-    entradaCategoria.value,
-  )..shuffle(_random);
+  final retosValidos = _limpiarListaTextos(entradaCategoria.value);
+  final claveCategoria = _normalizarTexto(entradaCategoria.key);
 
-  final cantidadFinal = min(
+  final descripciones = _gestorRetos.extraerVarios(
+    claveCategoria,
+    retosValidos,
     cantidad,
-    retosDisponibles.length,
   );
 
-  return retosDisponibles
-      .take(cantidadFinal)
-      .map(
-        (descripcion) => Reto(
-          descripcion: descripcion,
-          categoria: entradaCategoria.key,
-        ),
-      )
-      .toList(growable: false);
+  return List.unmodifiable(
+    descripciones.map(
+      (d) => Reto(descripcion: d, categoria: entradaCategoria.key),
+    ),
+  );
 }
 
-// ===========================================================
-// CASTIGOS
-// ===========================================================
-
-/// Obtiene un castigo aleatorio.
-///
-/// Puede recibir el castigo anterior para reducir la posibilidad de
-/// mostrar la misma opción dos veces seguidas.
 String obtenerCastigoAleatorio({
+  String? categoria,
   String? castigoAnterior,
 }) {
-  final castigosDisponibles = _limpiarListaTextos(
-    getCastigos(),
+  final categoriaResuelta = categoria == null
+      ? castigoGeneral
+      : resolverCategoriaCastigo(categoria);
+  final castigosValidos = _limpiarListaTextos(
+    getCastigos(categoria: categoriaResuelta),
   );
 
-  if (castigosDisponibles.isEmpty) {
+  if (castigosValidos.isEmpty) {
     return 'No hay castigos disponibles.';
   }
 
-  return _seleccionarTextoAleatorio(
-    opciones: castigosDisponibles,
-    textoAnterior: castigoAnterior,
+  final claveCategoria = _normalizarTexto(categoriaResuelta);
+  return _gestorCastigos.extraerUno(
+    claveCategoria,
+    castigosValidos,
+    anteriorForzado: castigoAnterior,
   );
 }
 
-/// Obtiene varios castigos aleatorios sin repetir.
+/// Devuelve un castigo cuya categoría corresponde a la del [reto] que
+/// no se cumplió. Útil para el flujo: reto fallado -> castigo a juego.
+String obtenerCastigoParaReto(
+  Reto reto, {
+  String? castigoAnterior,
+}) {
+  final categoriaCastigo = _mapearCategoriaRetoACastigo(reto.categoria);
+  return obtenerCastigoAleatorio(
+    categoria: categoriaCastigo,
+    castigoAnterior: castigoAnterior,
+  );
+}
+
+/// Traduce el nombre de una categoría de RETO al nombre de categoría de
+/// CASTIGO que le corresponde. Ajusta este mapa si tus categorías de
+/// `retos.dart` usan nombres distintos a las claves de la izquierda.
+const Map<String, String> _categoriaRetoACastigo = {
+  'general': castigoGeneral,
+  'confesiones': castigoConfesiones,
+  'shots para confesar': castigoConfesiones,
+  'shots ligeros': castigoShotsLigeros,
+  'ligeros': castigoShotsLigeros,
+  'picantes': castigoPicantes,
+  'nocturnos': castigoNocturnos,
+  'pareja': castigoPareja,
+  'shot en pareja': castigoPareja,
+  'calientes': castigoCalientes,
+  'shots calientes': castigoCalientes,
+  'bar': castigoBar,
+  'shot de bar': castigoBar,
+};
+
+String _mapearCategoriaRetoACastigo(String categoriaReto) {
+  final normalizada = _normalizarTexto(categoriaReto);
+  return _categoriaRetoACastigo[normalizada] ?? castigoGeneral;
+}
+
 List<String> obtenerCastigosAleatorios({
+  String? categoria,
   int cantidad = 3,
 }) {
   if (cantidad <= 0) {
     return [];
   }
 
-  final castigosDisponibles = _limpiarListaTextos(
-    getCastigos(),
-  )..shuffle(_random);
-
-  final cantidadFinal = min(
-    cantidad,
-    castigosDisponibles.length,
+  final categoriaResuelta = categoria == null
+      ? castigoGeneral
+      : resolverCategoriaCastigo(categoria);
+  final castigosValidos = _limpiarListaTextos(
+    getCastigos(categoria: categoriaResuelta),
   );
+  final claveCategoria = _normalizarTexto(categoriaResuelta);
 
-  return castigosDisponibles
-      .take(cantidadFinal)
-      .toList(growable: false);
+  return _gestorCastigos.extraerVarios(
+    claveCategoria,
+    castigosValidos,
+    cantidad,
+  );
 }
 
-// ===========================================================
-// RETOS ESPECIALES
-// ===========================================================
-
-/// Obtiene una nueva instancia de un reto especial aleatorio.
-///
-/// La copia reinicia sus turnos y actualiza su fecha de creación para
-/// que cada reto activo tenga un estado independiente.
 RetoEspecial? obtenerRetoEspecialCompletoAleatorio({
   String? ultimoId,
 }) {
@@ -218,30 +335,33 @@ RetoEspecial? obtenerRetoEspecialCompletoAleatorio({
     return null;
   }
 
-  final opciones = retosValidos.length > 1 &&
-          ultimoId != null &&
-          ultimoId.trim().isNotEmpty
-      ? retosValidos
-          .where(
-            (reto) =>
-                reto.id.trim() != ultimoId.trim(),
-          )
-          .toList()
-      : retosValidos;
+  final idsValidos = retosValidos.map((reto) => reto.id.trim()).toList();
+  final anterior = ultimoId ?? _ultimoRetoEspecialId;
 
-  final listaFinal =
-      opciones.isEmpty ? retosValidos : opciones;
+  if (!_mazoCoincideConOpcionesGlobal(_mazoRetosEspeciales, idsValidos)) {
+    _mazoRetosEspeciales = _crearMazoGlobal(
+      idsValidos,
+      ultimoTexto: anterior,
+    );
+  }
 
-  final retoBase =
-      listaFinal[_random.nextInt(listaFinal.length)];
+  if (_mazoRetosEspeciales.isEmpty) {
+    _mazoRetosEspeciales = _crearMazoGlobal(
+      idsValidos,
+      ultimoTexto: anterior,
+    );
+  }
+
+  final idSeleccionado = _mazoRetosEspeciales.removeLast();
+  _ultimoRetoEspecialId = idSeleccionado;
+
+  final retoBase = retosValidos.firstWhere(
+    (reto) => reto.id.trim() == idSeleccionado,
+  );
 
   return _crearInstanciaRetoEspecial(retoBase);
 }
 
-/// Obtiene solamente la descripción de un reto especial aleatorio.
-///
-/// Esta función se conserva para mantener compatibilidad con el código
-/// existente.
 String obtenerRetoEspecialAleatorio({
   String? ultimoId,
 }) {
@@ -249,14 +369,9 @@ String obtenerRetoEspecialAleatorio({
     ultimoId: ultimoId,
   );
 
-  return reto?.descripcion ??
-      'No hay retos especiales disponibles.';
+  return reto?.descripcion ?? 'No hay retos especiales disponibles.';
 }
 
-/// Busca un reto especial mediante su identificador.
-///
-/// La comparación ignora espacios externos, pero mantiene el contenido
-/// exacto del identificador.
 RetoEspecial? obtenerRetoEspecialPorId(String id) {
   final idLimpio = id.trim();
 
@@ -273,23 +388,15 @@ RetoEspecial? obtenerRetoEspecialPorId(String id) {
   return null;
 }
 
-/// Busca un reto especial mediante su descripción.
-///
-/// La comparación ignora mayúsculas, minúsculas y espacios múltiples.
-RetoEspecial? obtenerRetoEspecialPorDescripcion(
-  String descripcion,
-) {
-  final descripcionNormalizada = _normalizarTexto(
-    descripcion,
-  );
+RetoEspecial? obtenerRetoEspecialPorDescripcion(String descripcion) {
+  final descripcionNormalizada = _normalizarTexto(descripcion);
 
   if (descripcionNormalizada.isEmpty) {
     return null;
   }
 
   for (final reto in retosEspecialesLista) {
-    if (_normalizarTexto(reto.descripcion) ==
-        descripcionNormalizada) {
+    if (_normalizarTexto(reto.descripcion) == descripcionNormalizada) {
       return reto;
     }
   }
@@ -297,48 +404,32 @@ RetoEspecial? obtenerRetoEspecialPorDescripcion(
   return null;
 }
 
-/// Obtiene la cantidad total de turnos de un reto especial mediante
-/// su identificador.
 int obtenerTurnosRetoEspecialPorId(
   String id, {
   int valorPorDefecto = 3,
 }) {
   final reto = obtenerRetoEspecialPorId(id);
-
   return _validarTurnos(
     reto?.turnosTotales,
     valorPorDefecto: valorPorDefecto,
   );
 }
 
-/// Obtiene la cantidad total de turnos mediante la descripción.
-///
-/// Se conserva para mantener compatibilidad con la implementación
-/// anterior de `PantallaReto`.
 int obtenerTurnosRetoEspecial(
   String descripcion, {
   int valorPorDefecto = 3,
 }) {
-  final reto = obtenerRetoEspecialPorDescripcion(
-    descripcion,
-  );
-
+  final reto = obtenerRetoEspecialPorDescripcion(descripcion);
   return _validarTurnos(
     reto?.turnosTotales,
     valorPorDefecto: valorPorDefecto,
   );
 }
 
-/// Obtiene un reto especial distinto al último mostrado.
-RetoEspecial? obtenerRetoEspecialDiferente(
-  String? ultimoId,
-) {
-  return obtenerRetoEspecialCompletoAleatorio(
-    ultimoId: ultimoId,
-  );
+RetoEspecial? obtenerRetoEspecialDiferente(String? ultimoId) {
+  return obtenerRetoEspecialCompletoAleatorio(ultimoId: ultimoId);
 }
 
-/// Obtiene varias instancias de retos especiales sin repetir.
 List<RetoEspecial> obtenerRetosEspecialesAleatorios({
   int cantidad = 3,
   Iterable<String> idsExcluidos = const [],
@@ -353,18 +444,11 @@ List<RetoEspecial> obtenerRetosEspecialesAleatorios({
       .toSet();
 
   final retosDisponibles = _obtenerRetosEspecialesValidos()
-      .where(
-        (reto) => !idsNormalizados.contains(
-          reto.id.trim(),
-        ),
-      )
+      .where((reto) => !idsNormalizados.contains(reto.id.trim()))
       .toList()
     ..shuffle(_random);
 
-  final cantidadFinal = min(
-    cantidad,
-    retosDisponibles.length,
-  );
+  final cantidadFinal = min(cantidad, retosDisponibles.length);
 
   return retosDisponibles
       .take(cantidadFinal)
@@ -372,31 +456,11 @@ List<RetoEspecial> obtenerRetosEspecialesAleatorios({
       .toList(growable: false);
 }
 
-// ===========================================================
-// UTILIDADES PRIVADAS
-// ===========================================================
-
-/// Busca una categoría sin depender completamente de mayúsculas o
-/// espacios externos.
-MapEntry<String, List<String>>? _buscarCategoria(
-  String categoria,
-) {
-  final coincidenciaExacta =
-      retosPorCategoria.entries.where(
-    (entrada) => entrada.key == categoria,
-  );
-
-  if (coincidenciaExacta.isNotEmpty) {
-    return coincidenciaExacta.first;
-  }
-
-  final categoriaNormalizada = _normalizarTexto(
-    categoria,
-  );
+MapEntry<String, List<String>>? _buscarCategoria(String categoria) {
+  final categoriaNormalizada = _normalizarTexto(categoria);
 
   for (final entrada in retosPorCategoria.entries) {
-    if (_normalizarTexto(entrada.key) ==
-        categoriaNormalizada) {
+    if (_normalizarTexto(entrada.key) == categoriaNormalizada) {
       return entrada;
     }
   }
@@ -404,23 +468,15 @@ MapEntry<String, List<String>>? _buscarCategoria(
   return null;
 }
 
-/// Devuelve textos válidos, limpios y sin duplicados.
-List<String> _limpiarListaTextos(
-  Iterable<String> textos,
-) {
+List<String> _limpiarListaTextos(Iterable<String> textos) {
   final resultados = <String>[];
-  final normalizados = <String>{};
+  final clavesVistas = <String>{};
 
   for (final texto in textos) {
     final textoLimpio = _limpiarTexto(texto);
+    final clave = _normalizarTexto(textoLimpio);
 
-    if (textoLimpio.isEmpty) {
-      continue;
-    }
-
-    final clave = textoLimpio.toLowerCase();
-
-    if (normalizados.add(clave)) {
+    if (textoLimpio.isNotEmpty && clavesVistas.add(clave)) {
       resultados.add(textoLimpio);
     }
   }
@@ -428,84 +484,69 @@ List<String> _limpiarListaTextos(
   return resultados;
 }
 
-/// Selecciona un texto aleatorio y evita repetir inmediatamente el
-/// anterior cuando existen suficientes opciones.
-String _seleccionarTextoAleatorio({
-  required List<String> opciones,
-  String? textoAnterior,
-}) {
-  if (opciones.isEmpty) {
-    return '';
-  }
-
-  if (opciones.length == 1) {
-    return opciones.first;
-  }
-
-  final anteriorNormalizado = _normalizarTexto(
-    textoAnterior ?? '',
-  );
-
-  final opcionesFiltradas = anteriorNormalizado.isEmpty
-      ? opciones
-      : opciones
-          .where(
-            (opcion) =>
-                _normalizarTexto(opcion) !=
-                anteriorNormalizado,
-          )
-          .toList();
-
-  final listaFinal = opcionesFiltradas.isEmpty
-      ? opciones
-      : opcionesFiltradas;
-
-  return listaFinal[
-      _random.nextInt(listaFinal.length)];
-}
-
-/// Devuelve únicamente retos especiales con información válida.
 List<RetoEspecial> _obtenerRetosEspecialesValidos() {
+  final idsVistos = <String>{};
+
   return retosEspecialesLista.where((reto) {
-    return reto.id.trim().isNotEmpty &&
+    final id = reto.id.trim();
+    return id.isNotEmpty &&
         reto.descripcion.trim().isNotEmpty &&
-        reto.turnosTotales > 0;
+        reto.turnosTotales > 0 &&
+        idsVistos.add(id);
   }).toList();
 }
 
-/// Crea una instancia independiente de un reto especial.
-RetoEspecial _crearInstanciaRetoEspecial(
-  RetoEspecial retoBase,
-) {
+RetoEspecial _crearInstanciaRetoEspecial(RetoEspecial retoBase) {
   return retoBase.copyWith(
     turnosRestantes: retoBase.turnosTotales,
     creado: DateTime.now(),
   );
 }
 
-/// Garantiza una cantidad de turnos válida.
 int _validarTurnos(
   int? turnos, {
   required int valorPorDefecto,
 }) {
-  final defectoSeguro =
-      valorPorDefecto > 0 ? valorPorDefecto : 1;
+  final defectoSeguro = valorPorDefecto > 0 ? valorPorDefecto : 1;
+  return turnos == null || turnos <= 0 ? defectoSeguro : turnos;
+}
 
-  if (turnos == null || turnos <= 0) {
-    return defectoSeguro;
+// --- Helpers específicos del mazo de retos especiales (por id, no por
+// texto) — se mantienen separados porque comparan ids, no descripciones.
+
+List<String> _crearMazoGlobal(
+  Iterable<String> opciones, {
+  String? ultimoTexto,
+}) {
+  final mazo = opciones.toList()..shuffle(_random);
+
+  if (mazo.length > 1 && ultimoTexto != null) {
+    final indiceFinal = mazo.length - 1;
+    if (mazo[indiceFinal] == ultimoTexto) {
+      final repetido = mazo.removeAt(indiceFinal);
+      mazo.insert(0, repetido);
+    }
   }
 
-  return turnos;
+  return mazo;
 }
 
-/// Limpia espacios externos y múltiples.
+bool _mazoCoincideConOpcionesGlobal(
+  List<String> mazo,
+  List<String> opcionesActuales,
+) {
+  if (mazo.isEmpty) {
+    return true;
+  }
+
+  final opciones = opcionesActuales.toSet();
+  return mazo.every(opciones.contains);
+}
+
 String _limpiarTexto(String texto) {
-  return texto
-      .trim()
-      .replaceAll(RegExp(r'\s+'), ' ');
+  return texto.trim().replaceAll(RegExp(r'\s+'), ' ');
 }
 
-/// Normaliza un texto para realizar comparaciones.
 String _normalizarTexto(String texto) {
   return _limpiarTexto(texto).toLowerCase();
 }

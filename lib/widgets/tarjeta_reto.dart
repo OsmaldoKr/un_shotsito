@@ -1,76 +1,106 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 
 import '../data/retos_especiales.dart';
 import '../theme.dart';
+import 'control_estadisticas_retos.dart';
+import 'medidas_tarjeta.dart';
 
 class TarjetaReto extends StatelessWidget {
   const TarjetaReto({
-    required this.textoReto, required this.fadeAnimation, super.key,
+    required this.textoReto,
+    required this.fadeAnimation,
+    required this.estadisticas,
+    required this.turnoActual,
+    super.key,
     this.retoEspecial,
   });
 
   final String textoReto;
   final RetoEspecial? retoEspecial;
   final Animation<double> fadeAnimation;
+  final ControlEstadisticasRetos estadisticas;
+  final int turnoActual;
+
+  bool get _esEspecial => retoEspecial != null;
+
+  String get _textoVisible {
+    final texto = _esEspecial ? retoEspecial!.descripcion : textoReto;
+    return texto.trim().isEmpty ? 'Preparando el reto...' : texto;
+  }
+
+  String get _nombreJugador {
+    return estadisticas.jugadorEnTurno(turnoActual)?.nombre ?? 'Jugador';
+  }
 
   @override
   Widget build(BuildContext context) {
-    final esRetoEspecial = retoEspecial != null;
-
     return FadeTransition(
       opacity: fadeAnimation,
       child: LayoutBuilder(
-        builder: (context, constraints) {
-          final anchoDisponible = constraints.maxWidth;
-          final altoDisponible = constraints.maxHeight;
-
-          final pantallaEstrecha = anchoDisponible < 360;
-          final pantallaBaja = altoDisponible < 480;
-
-          final anchoTarjeta = min(
-            anchoDisponible,
-            520.0,
-          );
-
-          final alturaPreferida = pantallaBaja
-              ? altoDisponible
-              : altoDisponible.clamp(390.0, 560.0);
-
-          final alturaTarjeta = alturaPreferida
-              .clamp(
-                min(300.0, altoDisponible),
-                altoDisponible,
-              )
-              .toDouble();
-
-          final padding = pantallaEstrecha
-              ? 20.0
-              : pantallaBaja
-                  ? 22.0
-                  : 28.0;
-
-          final tamanoTexto = _calcularTamanoTexto(
-            texto: esRetoEspecial
-                ? retoEspecial!.descripcion
-                : textoReto,
-            anchoDisponible: anchoTarjeta,
-            pantallaBaja: pantallaBaja,
+        builder: (context, limites) {
+          final medidas = MedidasTarjeta.desde(
+            maxWidth: limites.maxWidth,
+            maxHeight: limites.maxHeight,
           );
 
           return Center(
             child: SizedBox(
-              width: anchoTarjeta,
-              height: alturaTarjeta,
-              child: _ContenidoTarjeta(
-                esRetoEspecial: esRetoEspecial,
-                retoEspecial: retoEspecial,
-                textoReto: textoReto,
-                padding: padding,
-                tamanoTexto: tamanoTexto,
-                pantallaBaja: pantallaBaja,
-                pantallaEstrecha: pantallaEstrecha,
+              width: medidas.ancho,
+              height: medidas.alto,
+              child: Container(
+                clipBehavior: Clip.antiAlias,
+                decoration: _decoracionTarjeta(),
+                child: Stack(
+                  children: [
+                    if (_esEspecial) const _FondoEspecial(),
+                    _LineaSuperior(esEspecial: _esEspecial),
+                    Padding(
+                      padding: EdgeInsets.fromLTRB(
+                        medidas.padding,
+                        medidas.padding + 4,
+                        medidas.padding,
+                        medidas.padding,
+                      ),
+                      child: Column(
+                        children: [
+                          _EncabezadoReto(
+                            nombreJugador: _nombreJugador,
+                            esEspecial: _esEspecial,
+                            pantallaBaja: medidas.pantallaBaja,
+                          ),
+                          _Separador(pantallaBaja: medidas.pantallaBaja),
+                          Expanded(
+                            child: Center(
+                              child: SingleChildScrollView(
+                                physics: const BouncingScrollPhysics(),
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 4),
+                                child: Text(
+                                  _textoVisible,
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    color: AppColors.textPrimary,
+                                    fontSize: medidas.tamanoTexto(
+                                      _textoVisible.length,
+                                    ),
+                                    fontWeight: FontWeight.w800,
+                                    height: 1.36,
+                                    letterSpacing: -0.2,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          SizedBox(height: medidas.pantallaBaja ? 12 : 18),
+                          _PieReto(
+                            retoEspecial: retoEspecial,
+                            pantallaEstrecha: medidas.pantallaEstrecha,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           );
@@ -79,220 +109,39 @@ class TarjetaReto extends StatelessWidget {
     );
   }
 
-  double _calcularTamanoTexto({
-    required String texto,
-    required double anchoDisponible,
-    required bool pantallaBaja,
-  }) {
-    double tamano;
-
-    if (texto.length > 180) {
-      tamano = 18;
-    } else if (texto.length > 120) {
-      tamano = 20;
-    } else if (texto.length > 75) {
-      tamano = 22;
-    } else {
-      tamano = 25;
-    }
-
-    if (anchoDisponible < 350) {
-      tamano -= 2;
-    }
-
-    if (pantallaBaja) {
-      tamano -= 1;
-    }
-
-    return tamano.clamp(17, 26).toDouble();
-  }
-}
-
-class _ContenidoTarjeta extends StatelessWidget {
-  const _ContenidoTarjeta({
-    required this.esRetoEspecial,
-    required this.retoEspecial,
-    required this.textoReto,
-    required this.padding,
-    required this.tamanoTexto,
-    required this.pantallaBaja,
-    required this.pantallaEstrecha,
-  });
-
-  final bool esRetoEspecial;
-  final RetoEspecial? retoEspecial;
-  final String textoReto;
-
-  final double padding;
-  final double tamanoTexto;
-
-  final bool pantallaBaja;
-  final bool pantallaEstrecha;
-
-  @override
-  Widget build(BuildContext context) {
-    final texto = esRetoEspecial
-        ? retoEspecial!.descripcion
-        : textoReto;
-
-    return Container(
-      clipBehavior: Clip.antiAlias,
-      decoration: BoxDecoration(
-        color: AppColors.surfaceElevated,
-        borderRadius: BorderRadius.circular(
-          AppSizes.radiusExtraLarge,
-        ),
-        border: Border.all(
-          color: esRetoEspecial
-              ? AppColors.primary.withValues(alpha: 0.30)
-              : AppColors.border,
-          width: esRetoEspecial ? 1.4 : 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: esRetoEspecial
-                ? AppColors.primary.withValues(alpha: 0.18)
-                : AppColors.shadow,
-            blurRadius: esRetoEspecial ? 26 : 20,
-            spreadRadius: esRetoEspecial ? 1 : 0,
-            offset: const Offset(0, 12),
-          ),
-        ],
+  BoxDecoration _decoracionTarjeta() {
+    return BoxDecoration(
+      color: AppColors.surfaceElevated,
+      borderRadius: BorderRadius.circular(AppSizes.radiusExtraLarge),
+      border: Border.all(
+        color: _esEspecial
+            ? AppColors.primary.withValues(alpha: 0.30)
+            : AppColors.border,
+        width: _esEspecial ? 1.4 : 1,
       ),
-      child: Stack(
-        children: [
-          if (esRetoEspecial) ...[
-            Positioned(
-              top: -48,
-              right: -38,
-              child: Container(
-                width: 155,
-                height: 155,
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(
-                    alpha: 0.06,
-                  ),
-                  shape: BoxShape.circle,
-                ),
-              ),
-            ),
-            Positioned(
-              bottom: -58,
-              left: -45,
-              child: Container(
-                width: 175,
-                height: 175,
-                decoration: BoxDecoration(
-                  color: AppColors.secondary.withValues(
-                    alpha: 0.05,
-                  ),
-                  shape: BoxShape.circle,
-                ),
-              ),
-            ),
-          ],
-
-          // Línea decorativa superior.
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            child: Container(
-              height: esRetoEspecial ? 7 : 5,
-              decoration: BoxDecoration(
-                gradient: esRetoEspecial
-                    ? AppColors.mainGradient
-                    : const LinearGradient(
-                        colors: [
-                          AppColors.primary,
-                          AppColors.primaryLight,
-                        ],
-                      ),
-              ),
-            ),
-          ),
-
-          Padding(
-            padding: EdgeInsets.fromLTRB(
-              padding,
-              padding + 4,
-              padding,
-              padding,
-            ),
-            child: Column(
-              children: [
-                if (esRetoEspecial)
-                  _EncabezadoEspecial(
-                    pantallaBaja: pantallaBaja,
-                  )
-                else
-                  _EncabezadoNormal(
-                    pantallaBaja: pantallaBaja,
-                  ),
-
-                SizedBox(
-                  height: pantallaBaja ? 14 : 20,
-                ),
-
-                Container(
-                  width: double.infinity,
-                  height: 1,
-                  color: AppColors.divider,
-                ),
-
-                SizedBox(
-                  height: pantallaBaja ? 14 : 20,
-                ),
-
-                Expanded(
-                  child: Center(
-                    child: SingleChildScrollView(
-                      physics: const BouncingScrollPhysics(),
-                      padding: const EdgeInsets.symmetric(
-                        vertical: 4,
-                      ),
-                      child: Text(
-                        texto.isEmpty
-                            ? 'Preparando el reto...'
-                            : texto,
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: AppColors.textPrimary,
-                          fontSize: tamanoTexto,
-                          fontWeight: FontWeight.w800,
-                          height: 1.36,
-                          letterSpacing: -0.2,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-
-                SizedBox(
-                  height: pantallaBaja ? 12 : 18,
-                ),
-
-                if (esRetoEspecial)
-                  _IndicadorTurnos(
-                    reto: retoEspecial!,
-                    pantallaEstrecha: pantallaEstrecha,
-                  )
-                else
-                  const _IndicadorRetoNormal(),
-              ],
-            ),
-          ),
-        ],
-      ),
+      boxShadow: [
+        BoxShadow(
+          color: _esEspecial
+              ? AppColors.primary.withValues(alpha: 0.18)
+              : AppColors.shadow,
+          blurRadius: _esEspecial ? 26 : 20,
+          spreadRadius: _esEspecial ? 1 : 0,
+          offset: const Offset(0, 12),
+        ),
+      ],
     );
   }
 }
 
-class _EncabezadoNormal extends StatelessWidget {
-  const _EncabezadoNormal({
+class _EncabezadoReto extends StatelessWidget {
+  const _EncabezadoReto({
+    required this.nombreJugador,
+    required this.esEspecial,
     required this.pantallaBaja,
   });
 
+  final String nombreJugador;
+  final bool esEspecial;
   final bool pantallaBaja;
 
   @override
@@ -301,147 +150,221 @@ class _EncabezadoNormal extends StatelessWidget {
 
     return Column(
       children: [
-        Container(
-          width: tamanoLogo,
-          height: tamanoLogo,
-          decoration: BoxDecoration(
-            gradient: AppColors.mainGradient,
-            borderRadius: BorderRadius.circular(
-              AppSizes.radiusLarge,
-            ),
-            border: Border.all(
-              color: AppColors.surfaceElevated.withValues(
-                alpha: 0.60,
-              ),
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.primary.withValues(
-                  alpha: 0.20,
-                ),
-                blurRadius: 18,
-                offset: const Offset(0, 8),
-              ),
-            ],
-          ),
-          child: Stack(
-            alignment: Alignment.center,
-            children: [
-              Positioned(
-                top: tamanoLogo * 0.15,
-                right: tamanoLogo * 0.17,
-                child: Container(
-                  width: tamanoLogo * 0.13,
-                  height: tamanoLogo * 0.13,
-                  decoration: BoxDecoration(
-                    color: AppColors.textOnPrimary.withValues(
-                      alpha: 0.22,
-                    ),
-                    shape: BoxShape.circle,
-                  ),
-                ),
-              ),
-              Positioned(
-                bottom: tamanoLogo * 0.15,
-                left: tamanoLogo * 0.17,
-                child: Container(
-                  width: tamanoLogo * 0.13,
-                  height: tamanoLogo * 0.13,
-                  decoration: BoxDecoration(
-                    color: AppColors.textOnPrimary.withValues(
-                      alpha: 0.22,
-                    ),
-                    shape: BoxShape.circle,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-        SizedBox(
-          height: pantallaBaja ? 10 : 14,
-        ),
+        _LogoReto(tamano: tamanoLogo),
+        SizedBox(height: pantallaBaja ? 10 : 14),
         Text(
-          'Tu reto',
-          style: Theme.of(context)
-              .textTheme
-              .titleLarge
-              ?.copyWith(
-                color: AppColors.primary,
-                fontSize: pantallaBaja ? 18 : 20,
-                fontWeight: FontWeight.w900,
-              ),
+          esEspecial
+              ? '$nombreJugador, reto especial'
+              : '$nombreJugador, tu reto',
+          maxLines: 2,
+          textAlign: TextAlign.center,
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(
+            color: AppColors.primary,
+            fontSize: 18,
+            fontWeight: FontWeight.w800,
+          ),
         ),
       ],
     );
   }
 }
 
-class _EncabezadoEspecial extends StatelessWidget {
-  const _EncabezadoEspecial({
-    required this.pantallaBaja,
+class _LogoReto extends StatelessWidget {
+  const _LogoReto({required this.tamano});
+
+  final double tamano;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: tamano,
+      height: tamano,
+      decoration: BoxDecoration(
+        gradient: AppColors.mainGradient,
+        borderRadius: BorderRadius.circular(AppSizes.radiusLarge),
+        border: Border.all(
+          color: AppColors.surfaceElevated.withValues(alpha: 0.60),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withValues(alpha: 0.20),
+            blurRadius: 18,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Stack(
+        children: [
+          _PuntoLogo(
+            top: tamano * 0.15,
+            right: tamano * 0.17,
+            tamano: tamano * 0.13,
+          ),
+          _PuntoLogo(
+            bottom: tamano * 0.15,
+            left: tamano * 0.17,
+            tamano: tamano * 0.13,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PuntoLogo extends StatelessWidget {
+  const _PuntoLogo({
+    required this.tamano,
+    this.top,
+    this.right,
+    this.bottom,
+    this.left,
   });
+
+  final double tamano;
+  final double? top;
+  final double? right;
+  final double? bottom;
+  final double? left;
+
+  @override
+  Widget build(BuildContext context) {
+    return Positioned(
+      top: top,
+      right: right,
+      bottom: bottom,
+      left: left,
+      child: Container(
+        width: tamano,
+        height: tamano,
+        decoration: BoxDecoration(
+          color: AppColors.textOnPrimary.withValues(alpha: 0.22),
+          shape: BoxShape.circle,
+        ),
+      ),
+    );
+  }
+}
+
+class _PieReto extends StatelessWidget {
+  const _PieReto({
+    required this.retoEspecial,
+    required this.pantallaEstrecha,
+  });
+
+  final RetoEspecial? retoEspecial;
+  final bool pantallaEstrecha;
+
+  @override
+  Widget build(BuildContext context) {
+    if (retoEspecial == null) {
+      return const _EtiquetaPie(texto: 'Decide si cumpliste el reto');
+    }
+
+    final turnos = retoEspecial!.turnosTotales < 0
+        ? 0
+        : retoEspecial!.turnosTotales;
+    return _EtiquetaPie(
+      texto: 'Duración: $turnos ${turnos == 1 ? 'turno' : 'turnos'}',
+      advertencia: true,
+      anchoCompleto: true,
+    );
+  }
+}
+
+class _EtiquetaPie extends StatelessWidget {
+  const _EtiquetaPie({
+    required this.texto,
+    this.advertencia = false,
+    this.anchoCompleto = false,
+  });
+
+  final String texto;
+  final bool advertencia;
+  final bool anchoCompleto;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: anchoCompleto ? double.infinity : null,
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+      decoration: BoxDecoration(
+        color: advertencia
+            ? AppColors.warningBackground
+            : AppColors.primary.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(AppSizes.radiusMedium),
+        border: advertencia
+            ? Border.all(color: AppColors.warning.withValues(alpha: 0.18))
+            : null,
+      ),
+      child: Text(
+        texto,
+        textAlign: TextAlign.center,
+        style: const TextStyle(
+          color: AppColors.textSecondary,
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+}
+
+class _Separador extends StatelessWidget {
+  const _Separador({required this.pantallaBaja});
 
   final bool pantallaBaja;
 
   @override
   Widget build(BuildContext context) {
-    final tamanoIcono = pantallaBaja ? 54.0 : 62.0;
+    final espacio = pantallaBaja ? 14.0 : 20.0;
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: espacio),
+      child: const Divider(height: 1, color: AppColors.divider),
+    );
+  }
+}
 
-    return Row(
+class _LineaSuperior extends StatelessWidget {
+  const _LineaSuperior({required this.esEspecial});
+
+  final bool esEspecial;
+
+  @override
+  Widget build(BuildContext context) {
+    return Positioned(
+      top: 0,
+      left: 0,
+      right: 0,
+      child: Container(
+        height: esEspecial ? 7 : 5,
+        decoration: const BoxDecoration(gradient: AppColors.mainGradient),
+      ),
+    );
+  }
+}
+
+class _FondoEspecial extends StatelessWidget {
+  const _FondoEspecial();
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
       children: [
-        Container(
-          width: tamanoIcono,
-          height: tamanoIcono,
-          decoration: BoxDecoration(
-            gradient: AppColors.mainGradient,
-            borderRadius: BorderRadius.circular(
-              AppSizes.radiusLarge,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.primary.withValues(
-                  alpha: 0.20,
-                ),
-                blurRadius: 16,
-                offset: const Offset(0, 7),
-              ),
-            ],
+        Positioned(
+          top: -48,
+          right: -38,
+          child: _CirculoDecorativo(
+            tamano: 155,
+            color: AppColors.primary.withValues(alpha: 0.06),
           ),
         ),
-        const SizedBox(width: 13),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Reto especial',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context)
-                    .textTheme
-                    .titleLarge
-                    ?.copyWith(
-                      color: AppColors.primary,
-                      fontSize: pantallaBaja ? 18 : 21,
-                      fontWeight: FontWeight.w900,
-                    ),
-              ),
-              const SizedBox(height: 3),
-              Text(
-                'Permanecerá activo varios turnos',
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context)
-                    .textTheme
-                    .bodySmall
-                    ?.copyWith(
-                      color: AppColors.textSecondary,
-                      fontSize: 12,
-                      height: 1.3,
-                    ),
-              ),
-            ],
+        Positioned(
+          bottom: -58,
+          left: -45,
+          child: _CirculoDecorativo(
+            tamano: 175,
+            color: AppColors.secondary.withValues(alpha: 0.05),
           ),
         ),
       ],
@@ -449,100 +372,18 @@ class _EncabezadoEspecial extends StatelessWidget {
   }
 }
 
-class _IndicadorRetoNormal extends StatelessWidget {
-  const _IndicadorRetoNormal();
+class _CirculoDecorativo extends StatelessWidget {
+  const _CirculoDecorativo({required this.tamano, required this.color});
+
+  final double tamano;
+  final Color color;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 14,
-        vertical: 9,
-      ),
-      decoration: BoxDecoration(
-        color: AppColors.primary.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(
-          AppSizes.radiusMedium,
-        ),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const SizedBox(width: 7),
-          Text(
-            'Decide si cumpliste el reto',
-            style: Theme.of(context)
-                .textTheme
-                .bodySmall
-                ?.copyWith(
-                  color: AppColors.textSecondary,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _IndicadorTurnos extends StatelessWidget {
-  const _IndicadorTurnos({
-    required this.reto,
-    required this.pantallaEstrecha,
-  });
-
-  final RetoEspecial reto;
-  final bool pantallaEstrecha;
-
-  @override
-  Widget build(BuildContext context) {
-    final turnos = reto.turnosTotales < 0
-        ? 0
-        : reto.turnosTotales;
-
-    final textoTurnos = turnos == 1
-        ? '1 turno'
-        : '$turnos turnos';
-
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.symmetric(
-        horizontal: pantallaEstrecha ? 12 : 15,
-        vertical: 11,
-      ),
-      decoration: BoxDecoration(
-        color: AppColors.warningBackground,
-        borderRadius: BorderRadius.circular(
-          AppSizes.radiusMedium,
-        ),
-        border: Border.all(
-          color: AppColors.warning.withValues(
-            alpha: 0.18,
-          ),
-        ),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const SizedBox(width: 8),
-          Flexible(
-            child: Text(
-              'Duración: $textoTurnos',
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: Theme.of(context)
-                  .textTheme
-                  .titleSmall
-                  ?.copyWith(
-                    color: AppColors.textPrimary,
-                    fontSize: pantallaEstrecha ? 13 : 14,
-                    fontWeight: FontWeight.w800,
-                  ),
-            ),
-          ),
-        ],
-      ),
+      width: tamano,
+      height: tamano,
+      decoration: BoxDecoration(color: color, shape: BoxShape.circle),
     );
   }
 }

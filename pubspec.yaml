@@ -28,22 +28,30 @@ flutter:
     - assets/images/
 
 flutter_launcher_icons:
-  android: true
+  android: "launcher_icon"
   ios: true
-  web:
-    generate: false
-  windows:
-    generate: true
-  macos:
-    generate: true
 
   image_path: "assets/images/logo_UnShotsito.png"
+  image_path_android: "assets/images/logo_UnShotsito.png"
+  image_path_ios: "assets/images/logo_UnShotsito.png"
 
   adaptive_icon_background: "#F1E9DF"
   adaptive_icon_foreground: "assets/images/logo_UnShotsito.png"
-
-  adaptive_icon_monochrome: "assets/images/logo_UnShotsito.png"
+  adaptive_icon_foreground_inset: 16
 
   remove_alpha_ios: true
+  background_color_ios: "#F1E9DF"
 
   min_sdk_android: 21
+
+  web:
+    generate: false
+
+  windows:
+    generate: true
+    image_path: "assets/images/logo_UnShotsito.png"
+    icon_size: 256
+
+  macos:
+    generate: true
+    image_path: "assets/images/logo_UnShotsito.png"

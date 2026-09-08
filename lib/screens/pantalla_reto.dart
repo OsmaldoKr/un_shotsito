@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:flutter/foundation.dart' show listEquals;
 import 'package:flutter/material.dart';
 
 import '../data/control_retos.dart';
@@ -9,6 +10,8 @@ import '../utils/procesadores_texto.dart';
 import '../widgets/icono_reto_especial.dart';
 import '../widgets/modal_reto_completado.dart';
 import '../widgets/modal_reto_especial.dart';
+import '../widgets/control_estadisticas_retos.dart';
+import '../widgets/panel_estadisticas_retos.dart';
 import '../widgets/tarjeta_reto.dart';
 
 class PantallaReto extends StatefulWidget {
@@ -58,10 +61,13 @@ class _PantallaRetoState extends State<PantallaReto>
   RetoEspecial? retoEspecialPendiente;
   RetoEspecial? retoEspecialExpandido;
 
-  String? retoCompletadoDescripcion;
+  final List<String> _retosCompletadosPendientes = [];
   String? _ultimoRetoEspecialId;
 
   int contadorTurnos = 0;
+  int _turnoActual = 0;
+
+  late final ControlEstadisticasRetos _controlEstadisticas;
 
   // =========================================================
   // ANIMACIONES
@@ -79,15 +85,26 @@ class _PantallaRetoState extends State<PantallaReto>
 
   bool get _hayModalVisible =>
       retoEspecialExpandido != null ||
-      retoCompletadoDescripcion != null;
+      _retosCompletadosPendientes.isNotEmpty;
 
   bool get _puedeInteractuar =>
       !_procesandoAccion && !_hayModalVisible;
+
+  String get _nombreJugadorActual {
+    return _controlEstadisticas.jugadorEnTurno(_turnoActual)?.nombre ??
+        'Jugador';
+  }
+
+  String? get _retoCompletadoActual {
+    if (_retosCompletadosPendientes.isEmpty) return null;
+    return _retosCompletadosPendientes.first;
+  }
 
   @override
   void initState() {
     super.initState();
 
+    _controlEstadisticas = ControlEstadisticasRetos(widget.jugadores);
     _configurarAnimaciones();
     _cargarPrimerReto();
   }
@@ -96,8 +113,19 @@ class _PantallaRetoState extends State<PantallaReto>
   void dispose() {
     _entradaController.dispose();
     _giroController.dispose();
+    _controlEstadisticas.dispose();
 
     super.dispose();
+  }
+
+  @override
+  void didUpdateWidget(covariant PantallaReto oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (!listEquals(oldWidget.jugadores, widget.jugadores)) {
+      _turnoActual = 0;
+      _controlEstadisticas.establecerJugadores(widget.jugadores);
+    }
   }
 
   // =========================================================
@@ -280,9 +308,9 @@ class _PantallaRetoState extends State<PantallaReto>
   // ACTUALIZACIÓN DE RETOS ACTIVOS
   // =========================================================
 
-  String? _actualizarRetosEspeciales() {
+  List<String> _actualizarRetosEspeciales() {
     if (retosEspecialesActivos.isEmpty) {
-      return null;
+      return const [];
     }
 
     final actualizados = <RetoEspecial>[];
@@ -307,18 +335,18 @@ class _PantallaRetoState extends State<PantallaReto>
 
     retosEspecialesActivos = actualizados;
 
-    if (completados.isEmpty) {
-      return null;
-    }
-
-    return completados.first.descripcion;
+    return completados
+        .map((reto) => reto.descripcion)
+        .toList(growable: false);
   }
 
   // =========================================================
   // GENERAR NUEVO RETO
   // =========================================================
 
-  Future<void> generarNuevoReto() async {
+  Future<void> generarNuevoReto({
+    bool avanzarTurno = true,
+  }) async {
     if (!_puedeInteractuar) {
       return;
     }
@@ -337,22 +365,24 @@ class _PantallaRetoState extends State<PantallaReto>
       if (!mounted) return;
 
       final nuevoReto = _obtenerRetoProcesado();
-      final retoCompletado = _actualizarRetosEspeciales();
+      final retosCompletados = _actualizarRetosEspeciales();
 
       setState(() {
-        contadorTurnos++;
+        if (avanzarTurno) {
+          _avanzarTurno();
+        }
 
         textoReto = nuevoReto;
         textoCastigo = '';
 
         mostrandoCastigo = false;
 
-        if (retoCompletado != null) {
-          retoCompletadoDescripcion = retoCompletado;
+        if (retosCompletados.isNotEmpty) {
+          _retosCompletadosPendientes.addAll(retosCompletados);
         }
       });
 
-      if (retoCompletado == null) {
+      if (retosCompletados.isEmpty) {
         _intentarAgregarRetoEspecial();
       }
 
@@ -436,6 +466,11 @@ class _PantallaRetoState extends State<PantallaReto>
       return;
     }
 
+    _controlEstadisticas.registrarResultado(
+      turnoActual: _turnoActual,
+      cumplido: cumplio,
+    );
+
     if (cumplio) {
       await generarNuevoReto();
     } else {
@@ -449,6 +484,25 @@ class _PantallaRetoState extends State<PantallaReto>
     }
 
     await generarNuevoReto();
+  }
+
+  void _avanzarTurno() {
+    contadorTurnos++;
+
+    if (widget.jugadores.isEmpty) {
+      _turnoActual = 0;
+      return;
+    }
+
+    _turnoActual = (_turnoActual + 1) % widget.jugadores.length;
+  }
+
+  void _mostrarEstadisticas() {
+    mostrarPanelEstadisticasRetos(
+      context: context,
+      control: _controlEstadisticas,
+      turnoActual: _turnoActual,
+    );
   }
 
   // =========================================================
@@ -599,14 +653,14 @@ class _PantallaRetoState extends State<PantallaReto>
                       ),
                       child: Text(
                         mostrandoCastigo
-                            ? 'Castigo del turno ${contadorTurnos + 1}'
+                            ? '$_nombreJugadorActual · Castigo'
                             : retoEspecialPendiente != null
-                                ? 'Reto especial disponible'
-                                : 'Turno ${contadorTurnos + 1}',
+                                ? '$_nombreJugadorActual · Reto especial'
+                                : '$_nombreJugadorActual · Turno ${contadorTurnos + 1}',
                         key: ValueKey(
                           '$mostrandoCastigo-'
                           '${retoEspecialPendiente != null}-'
-                          '$contadorTurnos',
+                          '$contadorTurnos-$_turnoActual',
                         ),
                         maxLines: 1,
                         overflow:
@@ -630,48 +684,10 @@ class _PantallaRetoState extends State<PantallaReto>
                 ),
               ),
               const SizedBox(width: 8),
-              Container(
-                constraints: const BoxConstraints(
-                  minWidth: 48,
-                  minHeight: 44,
-                ),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 11,
-                  vertical: 9,
-                ),
-                decoration: BoxDecoration(
-                  color: AppColors.textOnPrimary
-                      .withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(
-                    AppSizes.radiusMedium,
-                  ),
-                  border: Border.all(
-                    color: AppColors.textOnPrimary
-                        .withValues(alpha: 0.18),
-                  ),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(
-                      Icons.groups_rounded,
-                      color:
-                          AppColors.textOnPrimary,
-                      size: 19,
-                    ),
-                    const SizedBox(width: 5),
-                    Text(
-                      '${widget.jugadores.length}',
-                      style: const TextStyle(
-                        color:
-                            AppColors.textOnPrimary,
-                        fontSize: 14,
-                        fontWeight:
-                            FontWeight.w800,
-                      ),
-                    ),
-                  ],
-                ),
+              _BotonParticipantes(
+                cantidad: widget.jugadores.length,
+                habilitado: !_procesandoAccion,
+                onPressed: _mostrarEstadisticas,
               ),
             ],
           ),
@@ -719,6 +735,9 @@ class _PantallaRetoState extends State<PantallaReto>
                                   retoEspecialPendiente,
                               fadeAnimation:
                                   _fadeAnimation,
+                              estadisticas:
+                                  _controlEstadisticas,
+                              turnoActual: _turnoActual,
                             ),
                             reverso: _TarjetaCastigo(
                               textoCastigo:
@@ -756,11 +775,12 @@ class _PantallaRetoState extends State<PantallaReto>
                             ),
                           ),
 
-                        if (retoCompletadoDescripcion != null)
+                        if (_retoCompletadoActual != null)
                           Positioned.fill(
                             child: ModalRetoCompletado(
+                              key: ValueKey(_retoCompletadoActual),
                               descripcionReto:
-                                  retoCompletadoDescripcion!,
+                                  _retoCompletadoActual!,
                               onCerrar:
                                   _cerrarRetoCompletado,
                             ),
@@ -946,10 +966,14 @@ class _PantallaRetoState extends State<PantallaReto>
     if (!mounted) return;
 
     setState(() {
-      retoCompletadoDescripcion = null;
+      if (_retosCompletadosPendientes.isNotEmpty) {
+        _retosCompletadosPendientes.removeAt(0);
+      }
     });
 
-    _intentarAgregarRetoEspecial();
+    if (_retosCompletadosPendientes.isEmpty) {
+      _intentarAgregarRetoEspecial();
+    }
   }
 }
 
@@ -1404,6 +1428,72 @@ class _BotonEncabezado extends StatelessWidget {
       icon: Icon(
         icon,
         size: 23,
+      ),
+    );
+  }
+}
+
+class _BotonParticipantes extends StatelessWidget {
+  const _BotonParticipantes({
+    required this.cantidad,
+    required this.habilitado,
+    required this.onPressed,
+  });
+
+  final int cantidad;
+  final bool habilitado;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: 'Ver resultados de los jugadores',
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: habilitado ? onPressed : null,
+          borderRadius: BorderRadius.circular(AppSizes.radiusMedium),
+          child: AnimatedOpacity(
+            opacity: habilitado ? 1 : 0.45,
+            duration: const Duration(milliseconds: 180),
+            child: Container(
+              constraints: const BoxConstraints(
+                minWidth: 48,
+                minHeight: 44,
+              ),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 11,
+                vertical: 9,
+              ),
+              decoration: BoxDecoration(
+                color: AppColors.textOnPrimary.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(AppSizes.radiusMedium),
+                border: Border.all(
+                  color: AppColors.textOnPrimary.withValues(alpha: 0.18),
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.groups_rounded,
+                    color: AppColors.textOnPrimary,
+                    size: 19,
+                  ),
+                  const SizedBox(width: 5),
+                  Text(
+                    '$cantidad',
+                    style: const TextStyle(
+                      color: AppColors.textOnPrimary,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }

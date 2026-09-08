@@ -1,16 +1,12 @@
 plugins {
     id("com.android.application")
-    id("kotlin-android")
+    id("org.jetbrains.kotlin.android")
     id("dev.flutter.flutter-gradle-plugin")
 }
 
 android {
     namespace = "com.fratrespixel.unshotsito"
-
-    // Google Play exigirá API 36 para apps nuevas
-    // y actualizaciones desde el 31 de agosto de 2026.
-    compileSdk = 36
-
+    compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
@@ -25,14 +21,9 @@ android {
     defaultConfig {
         applicationId = "com.fratrespixel.unshotsito"
 
-        // Mantiene compatibilidad con la versión mínima
-        // configurada por Flutter.
         minSdk = flutter.minSdkVersion
+        targetSdk = flutter.targetSdkVersion
 
-        // Requerido próximamente por Google Play.
-        targetSdk = 36
-
-        // Estos valores se leen desde pubspec.yaml.
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }
@@ -44,13 +35,10 @@ android {
         }
 
         getByName("release") {
-            // Déjalo desactivado mientras desarrollamos.
-            // Luego puede activarse junto con ProGuard.
             isMinifyEnabled = false
             isShrinkResources = false
 
-            // Temporalmente permite generar una versión release.
-            // Para Google Play debes reemplazarla por tu firma privada.
+            // Firma provisional para generar el APK.
             signingConfig = signingConfigs.getByName("debug")
         }
     }
