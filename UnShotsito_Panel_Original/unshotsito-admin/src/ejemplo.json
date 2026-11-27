@@ -1,0 +1,183 @@
+{
+  "revision": 0,
+  "categorias": [
+    {
+      "id": "a83a7161-589d-4d28-a743-c360b5f1ac43",
+      "nombre": "Shots ligeros",
+      "orden": 1,
+      "activo": true
+    },
+    {
+      "id": "39de6c08-2291-4db6-840f-2f76818c7fa7",
+      "nombre": "Shots picantes",
+      "orden": 2,
+      "activo": true
+    },
+    {
+      "id": "272fb6d7-a42a-49ba-af47-dd99939b154d",
+      "nombre": "Shots nocturnos",
+      "orden": 3,
+      "activo": true
+    },
+    {
+      "id": "40eb8dba-053c-4eeb-8fd8-ac72f8d3091c",
+      "nombre": "Shots calientes",
+      "orden": 4,
+      "activo": true
+    },
+    {
+      "id": "bcaeb589-ceb2-40ce-b3a7-a0b9ff7717e4",
+      "nombre": "Shots en pareja",
+      "orden": 5,
+      "activo": true
+    },
+    {
+      "id": "745ee906-4cc0-4915-81c6-e03eb10c856d",
+      "nombre": "Shots de bar",
+      "orden": 6,
+      "activo": true
+    },
+    {
+      "id": "1d3e1625-64f7-4539-a0d7-641f00f4882d",
+      "activo": true,
+      "nombre": "Shots para confesar",
+      "orden": 7
+    }
+  ],
+  "consignas": [
+    {
+      "id": "55468ff8-c342-4606-b5fa-1910427f0dd4",
+      "categoria": "a83a7161-589d-4d28-a743-c360b5f1ac43",
+      "tipo": "reto",
+      "texto": "Presentá a {otroJugador} como si fuera una celebridad.",
+      "activo": true
+    },
+    {
+      "id": "178ab7ac-4aae-4af6-b908-f45141ee2aed",
+      "categoria": "a83a7161-589d-4d28-a743-c360b5f1ac43",
+      "tipo": "reto",
+      "texto": "Imitá un personaje hasta que alguien lo adivine.",
+      "activo": true
+    },
+    {
+      "id": "d1d10e7a-425e-4896-9ac1-4446f3bac022",
+      "categoria": "a83a7161-589d-4d28-a743-c360b5f1ac43",
+      "tipo": "reto",
+      "texto": "Inventá un apodo de superhéroe para {jugador}.",
+      "activo": true
+    },
+    {
+      "id": "894b8f15-a3ad-4f13-aa7e-8857447f8412",
+      "categoria": "a83a7161-589d-4d28-a743-c360b5f1ac43",
+      "tipo": "reto",
+      "texto": "Contá una anécdota usando solo cinco palabras.",
+      "activo": false
+    },
+    {
+      "id": "e3421054-2dc4-4854-86ce-b9b3bbc35e76",
+      "categoria": "a83a7161-589d-4d28-a743-c360b5f1ac43",
+      "tipo": "castigo",
+      "texto": "Narrá el próximo turno como un partido de fútbol.",
+      "activo": true
+    },
+    {
+      "id": "37e1d2a5-9752-4b6c-8310-d4687e896b52",
+      "categoria": "39de6c08-2291-4db6-840f-2f76818c7fa7",
+      "tipo": "reto",
+      "texto": "Vendé un objeto de la mesa como si fuera un invento revolucionario.",
+      "activo": true
+    },
+    {
+      "id": "758cc1e2-d255-47dc-b685-0d174efaf25a",
+      "categoria": "39de6c08-2291-4db6-840f-2f76818c7fa7",
+      "tipo": "reto",
+      "texto": "Improvisá un diálogo entre dos calcetines.",
+      "activo": true
+    },
+    {
+      "id": "eeb0bc00-1a5d-4264-a53a-28ed1c304fd1",
+      "categoria": "39de6c08-2291-4db6-840f-2f76818c7fa7",
+      "tipo": "castigo",
+      "texto": "Hablá como robot durante una frase.",
+      "activo": true
+    },
+    {
+      "id": "2c77196b-130e-46d5-9fad-fc6c38ddfd27",
+      "categoria": "272fb6d7-a42a-49ba-af47-dd99939b154d",
+      "tipo": "reto",
+      "texto": "Describí un recuerdo del grupo usando tres pistas.",
+      "activo": true
+    },
+    {
+      "id": "8e18631e-22d3-4f03-beae-d5fae9dc7250",
+      "categoria": "272fb6d7-a42a-49ba-af47-dd99939b154d",
+      "tipo": "castigo",
+      "texto": "Inventá un título de película para esta ronda.",
+      "activo": true
+    },
+    {
+      "id": "eb0d4eaf-3f70-41f1-b5f9-f999c83aa0ef",
+      "categoria": "40eb8dba-053c-4eeb-8fd8-ac72f8d3091c",
+      "tipo": "reto",
+      "texto": "Cantá un estribillo que te dé pena admitir que conocés.",
+      "activo": true
+    },
+    {
+      "id": "8946be1a-8b90-47fe-abd0-77401df0ba97",
+      "categoria": "40eb8dba-053c-4eeb-8fd8-ac72f8d3091c",
+      "tipo": "castigo",
+      "texto": "Hacé una entrada de estrella de cine.",
+      "activo": true
+    },
+    {
+      "id": "a4688517-0a58-4f62-922f-3f6815baa277",
+      "categoria": "bcaeb589-ceb2-40ce-b3a7-a0b9ff7717e4",
+      "tipo": "reto",
+      "texto": "Decí qué canción te recuerda a {otroJugador}.",
+      "activo": true
+    },
+    {
+      "id": "eebf1810-0e91-46e1-9dba-706d5d82fa90",
+      "categoria": "bcaeb589-ceb2-40ce-b3a7-a0b9ff7717e4",
+      "tipo": "castigo",
+      "texto": "Dibujá una estrella en el aire con el codo.",
+      "activo": true
+    },
+    {
+      "id": "52507878-0afb-4699-bd05-a6897d3174a1",
+      "categoria": "745ee906-4cc0-4915-81c6-e03eb10c856d",
+      "tipo": "reto",
+      "texto": "Tarareá una canción para que el grupo la adivine.",
+      "activo": true
+    },
+    {
+      "id": "fbd0c4f8-55f4-4eb7-9d2c-f4cdf88a4f67",
+      "categoria": "745ee906-4cc0-4915-81c6-e03eb10c856d",
+      "tipo": "castigo",
+      "texto": "Hacé el sonido de un instrumento imaginario.",
+      "activo": true
+    },
+    {
+      "id": "512b5bc7-5db1-4f02-89b2-f7c131097b1d",
+      "categoria": "1d3e1625-64f7-4539-a0d7-641f00f4882d",
+      "tipo": "reto",
+      "texto": "Confesá qué canción sabés de memoria.",
+      "activo": true
+    },
+    {
+      "id": "cb6fe631-8748-4ee8-9459-9a71ddd1df59",
+      "categoria": "general",
+      "tipo": "castigo",
+      "texto": "Inventá un saludo para el grupo.",
+      "activo": true
+    },
+    {
+      "id": "6efd2ade-6ebb-4447-ac02-503c12dab595",
+      "categoria": "general",
+      "tipo": "especial",
+      "texto": "Durante tus turnos, saludá a name con una rima.",
+      "activo": true,
+      "turnos": 3
+    }
+  ]
+}

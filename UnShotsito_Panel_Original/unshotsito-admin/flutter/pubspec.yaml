@@ -1,0 +1,12 @@
+name: ejemplo_unshotsito
+description: Integración del catálogo de UnShotsito.
+publish_to: none
+version: 1.0.0+1
+environment:
+  sdk: ">=3.5.0 <4.0.0"
+dependencies:
+  flutter:
+    sdk: flutter
+  http: ^1.3.0
+flutter:
+  uses-material-design: true

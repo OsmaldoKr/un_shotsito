@@ -449,7 +449,7 @@ final Map<String, List<String>> retosPorCategoria = {
 
   'SHOTS PICANTES': [
 
-    'Elige a alguien y describe cómo sería una cita entre ustedes que ninguno admitiría públicamente.',
+  'Elige a alguien y describe cómo sería una cita entre ustedes que ninguno admitiría públicamente.',
   'Haz una demostración de cómo pedirías permiso para quitarle una prenda exterior a alguien.',
   'El grupo debe decidir quién podría llevarte de una conversación inocente a una situación íntima.',
   'Dile a una persona qué tipo de mensaje suyo te haría levantarte de la cama inmediatamente.',
@@ -1697,7 +1697,7 @@ final Map<String, List<String>> retosPorCategoria = {
 
   ],
   'SHOTS EN PAREJA': [
-'Mírense fijamente durante treinta segundos sin reírse ni apartar la mirada.',
+  'Mírense fijamente durante treinta segundos sin reírse ni apartar la mirada.',
   'Escriban por separado cuál fue el lugar de su primer beso y muestren las respuestas al mismo tiempo.',
   'Cada uno debe decir qué parte del cuerpo de su pareja le resulta más atractiva.',
   'Recreen durante veinte segundos la forma en que coquetearon por primera vez.',
@@ -2734,7 +2734,7 @@ final Map<String, List<String>> retosPorCategoria = {
   'Pregunta a una persona qué estaría dispuesta a descubrir contigo sin importar tu historial sentimental.',
   ],
 
-'SHOTS CALIENTES': [
+  'SHOTS CALIENTES': [
   'Mantén tu rostro a pocos centímetros de la persona que más te atraiga durante veinte segundos.',
   'Haz un baile sensual frente a una persona elegida por el grupo.',
   'Dale un beso lento en el cuello a alguien que acepte participar.',

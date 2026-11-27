@@ -3,7 +3,7 @@ import 'dart:math';
 import 'package:flutter/foundation.dart' show listEquals;
 import 'package:flutter/material.dart';
 
-import '../data/control_retos.dart';
+import '../data/catalogo_grupal.dart';
 import '../data/retos_especiales.dart';
 import '../theme.dart';
 import '../utils/procesadores_texto.dart';
@@ -16,11 +16,17 @@ import '../widgets/tarjeta_reto.dart';
 
 class PantallaReto extends StatefulWidget {
   const PantallaReto({
-    required this.jugadores, required this.tipo, super.key,
+    required this.jugadores,
+    required this.tipo,
+    required this.catalogo,
+    required this.categoria,
+    super.key,
   });
 
   final List<String> jugadores;
   final String tipo;
+  final CatalogoGrupal catalogo;
+  final CategoriaGrupal categoria;
 
   @override
   State<PantallaReto> createState() => _PantallaRetoState();
@@ -84,11 +90,9 @@ class _PantallaRetoState extends State<PantallaReto>
   // =========================================================
 
   bool get _hayModalVisible =>
-      retoEspecialExpandido != null ||
-      _retosCompletadosPendientes.isNotEmpty;
+      retoEspecialExpandido != null || _retosCompletadosPendientes.isNotEmpty;
 
-  bool get _puedeInteractuar =>
-      !_procesandoAccion && !_hayModalVisible;
+  bool get _puedeInteractuar => !_procesandoAccion && !_hayModalVisible;
 
   String get _nombreJugadorActual {
     return _controlEstadisticas.jugadorEnTurno(_turnoActual)?.nombre ??
@@ -166,28 +170,31 @@ class _PantallaRetoState extends State<PantallaReto>
     _giroController.value = 0;
   }
 
-  String _obtenerRetoProcesado() {
-    final reto = obtenerRetoAleatorio(
-      widget.tipo,
-      descripcionAnterior: textoReto,
-    );
+  late final _mazoRetos = MazoGrupal(widget.categoria.retos, _random);
+  late final _mazoCastigos = MazoGrupal([
+    ...widget.categoria.castigos,
+    ...widget.catalogo.generales,
+  ], _random);
 
-    return _procesador.procesarRetoConJugadores(
-      reto.descripcion,
+  String _personalizar(String texto) {
+    final otros = widget.jugadores
+        .where((n) => n != _nombreJugadorActual)
+        .toList();
+    final otro = otros.isEmpty
+        ? _nombreJugadorActual
+        : otros[_random.nextInt(otros.length)];
+    final legado = _procesador.procesarRetoConJugadores(
+      texto,
       widget.jugadores,
+    );
+    return legado.replaceAllMapped(
+      RegExp(r'\{(jugador|otroJugador)\}'),
+      (m) => m[1] == 'jugador' ? _nombreJugadorActual : otro,
     );
   }
 
-  String _obtenerCastigoProcesado() {
-    final castigo = obtenerCastigoAleatorio(
-      castigoAnterior: textoCastigo,
-    );
-
-    return _procesador.procesarRetoConJugadores(
-      castigo,
-      widget.jugadores,
-    );
-  }
+  String _obtenerRetoProcesado() => _personalizar(_mazoRetos.sacar());
+  String _obtenerCastigoProcesado() => _personalizar(_mazoCastigos.sacar());
 
   // =========================================================
   // CREACIÓN DE RETOS ESPECIALES
@@ -196,39 +203,27 @@ class _PantallaRetoState extends State<PantallaReto>
   void _intentarAgregarRetoEspecial() {
     if (retoEspecialPendiente != null ||
         mostrandoCastigo ||
-        retosEspecialesActivos.length >=
-            _maximoRetosEspecialesActivos) {
+        retosEspecialesActivos.length >= _maximoRetosEspecialesActivos) {
       return;
     }
 
-    final debeGenerarse =
-        _random.nextDouble() < _probabilidadRetoEspecial;
+    final debeGenerarse = _random.nextDouble() < _probabilidadRetoEspecial;
 
     if (!debeGenerarse) {
       return;
     }
 
-    final retoBase = obtenerRetoEspecialCompletoAleatorio(
-      ultimoId: _ultimoRetoEspecialId,
-    );
-
-    if (retoBase == null) {
-      return;
+    final disponibles = widget.catalogo.especiales
+        .where(
+          (e) => !retosEspecialesActivos.any((activo) => activo.id == e.id),
+        )
+        .toList();
+    if (disponibles.isEmpty) return;
+    if (disponibles.length > 1) {
+      disponibles.removeWhere((e) => e.id == _ultimoRetoEspecialId);
     }
-
-    final yaExiste = retosEspecialesActivos.any(
-      (reto) => reto.id == retoBase.id,
-    );
-
-    if (yaExiste) {
-      return;
-    }
-
-    final descripcionProcesada =
-        _procesador.procesarRetoConJugadores(
-      retoBase.descripcion,
-      widget.jugadores,
-    );
+    final retoBase = disponibles[_random.nextInt(disponibles.length)];
+    final descripcionProcesada = _personalizar(retoBase.descripcion);
 
     final nuevoReto = retoBase.copyWith(
       descripcion: descripcionProcesada,
@@ -268,10 +263,7 @@ class _PantallaRetoState extends State<PantallaReto>
 
       setState(() {
         if (!yaEstaActivo) {
-          retosEspecialesActivos = [
-            ...retosEspecialesActivos,
-            retoPendiente,
-          ];
+          retosEspecialesActivos = [...retosEspecialesActivos, retoPendiente];
         }
 
         retoEspecialPendiente = null;
@@ -284,19 +276,13 @@ class _PantallaRetoState extends State<PantallaReto>
 
       await _entradaController.forward();
     } catch (error, stackTrace) {
-      debugPrint(
-        'Error al aceptar el reto especial: $error',
-      );
+      debugPrint('Error al aceptar el reto especial: $error');
 
-      debugPrintStack(
-        stackTrace: stackTrace,
-      );
+      debugPrintStack(stackTrace: stackTrace);
 
       if (!mounted) return;
 
-      _mostrarMensaje(
-        'No se pudo aceptar el reto especial.',
-      );
+      _mostrarMensaje('No se pudo aceptar el reto especial.');
     } finally {
       if (mounted) {
         _cambiarEstadoProcesando(false);
@@ -317,14 +303,9 @@ class _PantallaRetoState extends State<PantallaReto>
     final completados = <RetoEspecial>[];
 
     for (final reto in retosEspecialesActivos) {
-      final turnosNuevos = max(
-        0,
-        reto.turnosRestantes - 1,
-      );
+      final turnosNuevos = max(0, reto.turnosRestantes - 1);
 
-      final retoActualizado = reto.copyWith(
-        turnosRestantes: turnosNuevos,
-      );
+      final retoActualizado = reto.copyWith(turnosRestantes: turnosNuevos);
 
       if (retoActualizado.activo) {
         actualizados.add(retoActualizado);
@@ -335,18 +316,14 @@ class _PantallaRetoState extends State<PantallaReto>
 
     retosEspecialesActivos = actualizados;
 
-    return completados
-        .map((reto) => reto.descripcion)
-        .toList(growable: false);
+    return completados.map((reto) => reto.descripcion).toList(growable: false);
   }
 
   // =========================================================
   // GENERAR NUEVO RETO
   // =========================================================
 
-  Future<void> generarNuevoReto({
-    bool avanzarTurno = true,
-  }) async {
+  Future<void> generarNuevoReto({bool avanzarTurno = true}) async {
     if (!_puedeInteractuar) {
       return;
     }
@@ -364,7 +341,6 @@ class _PantallaRetoState extends State<PantallaReto>
 
       if (!mounted) return;
 
-      final nuevoReto = _obtenerRetoProcesado();
       final retosCompletados = _actualizarRetosEspeciales();
 
       setState(() {
@@ -372,7 +348,7 @@ class _PantallaRetoState extends State<PantallaReto>
           _avanzarTurno();
         }
 
-        textoReto = nuevoReto;
+        textoReto = _obtenerRetoProcesado();
         textoCastigo = '';
 
         mostrandoCastigo = false;
@@ -388,22 +364,15 @@ class _PantallaRetoState extends State<PantallaReto>
 
       await _entradaController.forward();
     } catch (error, stackTrace) {
-      debugPrint(
-        'Error al generar un nuevo reto: $error',
-      );
+      debugPrint('Error al generar un nuevo reto: $error');
 
-      debugPrintStack(
-        stackTrace: stackTrace,
-      );
+      debugPrintStack(stackTrace: stackTrace);
 
       if (!mounted) return;
 
-      _mostrarMensaje(
-        'No se pudo cargar el siguiente reto.',
-      );
+      _mostrarMensaje('No se pudo cargar el siguiente reto.');
 
-      if (_entradaController.status ==
-          AnimationStatus.dismissed) {
+      if (_entradaController.status == AnimationStatus.dismissed) {
         await _entradaController.forward();
       }
     } finally {
@@ -434,13 +403,9 @@ class _PantallaRetoState extends State<PantallaReto>
 
       await _giroController.forward();
     } catch (error, stackTrace) {
-      debugPrint(
-        'Error al mostrar el castigo: $error',
-      );
+      debugPrint('Error al mostrar el castigo: $error');
 
-      debugPrintStack(
-        stackTrace: stackTrace,
-      );
+      debugPrintStack(stackTrace: stackTrace);
 
       if (!mounted) return;
 
@@ -449,9 +414,7 @@ class _PantallaRetoState extends State<PantallaReto>
         textoCastigo = '';
       });
 
-      _mostrarMensaje(
-        'No se pudo mostrar el castigo.',
-      );
+      _mostrarMensaje('No se pudo mostrar el castigo.');
     } finally {
       if (mounted) {
         _cambiarEstadoProcesando(false);
@@ -459,9 +422,7 @@ class _PantallaRetoState extends State<PantallaReto>
     }
   }
 
-  Future<void> completarReto({
-    required bool cumplio,
-  }) async {
+  Future<void> completarReto({required bool cumplio}) async {
     if (!_puedeInteractuar) {
       return;
     }
@@ -474,7 +435,11 @@ class _PantallaRetoState extends State<PantallaReto>
     if (cumplio) {
       await generarNuevoReto();
     } else {
-      await mostrarCastigo();
+      if (_mazoCastigos.opciones.isEmpty) {
+        await generarNuevoReto();
+      } else {
+        await mostrarCastigo();
+      }
     }
   }
 
@@ -520,11 +485,7 @@ class _PantallaRetoState extends State<PantallaReto>
   void _mostrarMensaje(String mensaje) {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Text(mensaje),
-        ),
-      );
+      ..showSnackBar(SnackBar(content: Text(mensaje)));
   }
 
   // =========================================================
@@ -557,19 +518,15 @@ class _PantallaRetoState extends State<PantallaReto>
   // =========================================================
 
   Widget _construirEncabezado() {
-    final anchoPantalla =
-        MediaQuery.sizeOf(context).width;
+    final anchoPantalla = MediaQuery.sizeOf(context).width;
 
-    final pantallaPequena =
-        anchoPantalla < 360;
+    final pantallaPequena = anchoPantalla < 360;
 
     return Container(
       width: double.infinity,
       decoration: const BoxDecoration(
         gradient: AppColors.mainGradient,
-        borderRadius: BorderRadius.vertical(
-          bottom: Radius.circular(28),
-        ),
+        borderRadius: BorderRadius.vertical(bottom: Radius.circular(28)),
         boxShadow: [
           BoxShadow(
             color: AppColors.shadow,
@@ -597,22 +554,16 @@ class _PantallaRetoState extends State<PantallaReto>
                   Navigator.pop(context);
                 },
               ),
-              SizedBox(
-                width: pantallaPequena ? 10 : 13,
-              ),
+              SizedBox(width: pantallaPequena ? 10 : 13),
               Container(
                 width: pantallaPequena ? 42 : 48,
                 height: pantallaPequena ? 42 : 48,
                 padding: const EdgeInsets.all(7),
                 decoration: BoxDecoration(
-                  color: AppColors.textOnPrimary
-                      .withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(
-                    AppSizes.radiusMedium,
-                  ),
+                  color: AppColors.textOnPrimary.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(AppSizes.radiusMedium),
                   border: Border.all(
-                    color: AppColors.textOnPrimary
-                        .withValues(alpha: 0.18),
+                    color: AppColors.textOnPrimary.withValues(alpha: 0.18),
                   ),
                 ),
                 child: Image.asset(
@@ -620,64 +571,44 @@ class _PantallaRetoState extends State<PantallaReto>
                   fit: BoxFit.contain,
                 ),
               ),
-              SizedBox(
-                width: pantallaPequena ? 10 : 13,
-              ),
+              SizedBox(width: pantallaPequena ? 10 : 13),
               Expanded(
                 child: Column(
-                  crossAxisAlignment:
-                      CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       widget.tipo,
                       maxLines: 1,
-                      overflow:
-                          TextOverflow.ellipsis,
-                      style: Theme.of(context)
-                          .textTheme
-                          .titleLarge
-                          ?.copyWith(
-                            color:
-                                AppColors.textOnPrimary,
-                            fontSize: pantallaPequena
-                                ? 19
-                                : 22,
-                            fontWeight:
-                                FontWeight.w900,
-                          ),
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        color: AppColors.textOnPrimary,
+                        fontSize: pantallaPequena ? 19 : 22,
+                        fontWeight: FontWeight.w900,
+                      ),
                     ),
                     const SizedBox(height: 3),
                     AnimatedSwitcher(
-                      duration: const Duration(
-                        milliseconds: 220,
-                      ),
+                      duration: const Duration(milliseconds: 220),
                       child: Text(
                         mostrandoCastigo
                             ? '$_nombreJugadorActual · Castigo'
                             : retoEspecialPendiente != null
-                                ? '$_nombreJugadorActual · Reto especial'
-                                : '$_nombreJugadorActual · Turno ${contadorTurnos + 1}',
+                            ? '$_nombreJugadorActual · Reto especial'
+                            : '$_nombreJugadorActual · Turno ${contadorTurnos + 1}',
                         key: ValueKey(
                           '$mostrandoCastigo-'
                           '${retoEspecialPendiente != null}-'
                           '$contadorTurnos-$_turnoActual',
                         ),
                         maxLines: 1,
-                        overflow:
-                            TextOverflow.ellipsis,
-                        style: Theme.of(context)
-                            .textTheme
-                            .bodySmall
-                            ?.copyWith(
-                              color: AppColors
-                                  .textOnPrimary
-                                  .withValues(
-                                    alpha: 0.80,
-                                  ),
-                              fontSize: 12,
-                              fontWeight:
-                                  FontWeight.w600,
-                            ),
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: AppColors.textOnPrimary.withValues(
+                            alpha: 0.80,
+                          ),
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                   ],
@@ -703,11 +634,9 @@ class _PantallaRetoState extends State<PantallaReto>
   Widget _construirContenidoPrincipal() {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final pantallaEstrecha =
-            constraints.maxWidth < 360;
+        final pantallaEstrecha = constraints.maxWidth < 360;
 
-        final pantallaBaja =
-            constraints.maxHeight < 600;
+        final pantallaBaja = constraints.maxHeight < 600;
 
         return Padding(
           padding: EdgeInsets.fromLTRB(
@@ -718,9 +647,7 @@ class _PantallaRetoState extends State<PantallaReto>
           ),
           child: Center(
             child: ConstrainedBox(
-              constraints: const BoxConstraints(
-                maxWidth: 680,
-              ),
+              constraints: const BoxConstraints(maxWidth: 680),
               child: Column(
                 children: [
                   Expanded(
@@ -731,31 +658,24 @@ class _PantallaRetoState extends State<PantallaReto>
                             animation: _giroAnimation,
                             frente: TarjetaReto(
                               textoReto: textoReto,
-                              retoEspecial:
-                                  retoEspecialPendiente,
-                              fadeAnimation:
-                                  _fadeAnimation,
-                              estadisticas:
-                                  _controlEstadisticas,
+                              retoEspecial: retoEspecialPendiente,
+                              fadeAnimation: _fadeAnimation,
+                              estadisticas: _controlEstadisticas,
                               turnoActual: _turnoActual,
                             ),
                             reverso: _TarjetaCastigo(
-                              textoCastigo:
-                                  textoCastigo,
-                              turno:
-                                  contadorTurnos + 1,
+                              textoCastigo: textoCastigo,
+                              turno: contadorTurnos + 1,
                             ),
                           ),
                         ),
 
-                        if (retosEspecialesActivos
-                                .isNotEmpty &&
+                        if (retosEspecialesActivos.isNotEmpty &&
                             !mostrandoCastigo)
                           Positioned(
                             top: 8,
                             left: 8,
-                            child:
-                                _construirRetosEspecialesActivos(),
+                            child: _construirRetosEspecialesActivos(),
                           ),
 
                         if (_procesandoAccion)
@@ -768,10 +688,8 @@ class _PantallaRetoState extends State<PantallaReto>
                         if (retoEspecialExpandido != null)
                           Positioned.fill(
                             child: ModalRetoEspecial(
-                              reto:
-                                  retoEspecialExpandido!,
-                              onCerrar:
-                                  _cerrarRetoEspecialExpandido,
+                              reto: retoEspecialExpandido!,
+                              onCerrar: _cerrarRetoEspecialExpandido,
                             ),
                           ),
 
@@ -779,23 +697,15 @@ class _PantallaRetoState extends State<PantallaReto>
                           Positioned.fill(
                             child: ModalRetoCompletado(
                               key: ValueKey(_retoCompletadoActual),
-                              descripcionReto:
-                                  _retoCompletadoActual!,
-                              onCerrar:
-                                  _cerrarRetoCompletado,
+                              descripcionReto: _retoCompletadoActual!,
+                              onCerrar: _cerrarRetoCompletado,
                             ),
                           ),
                       ],
                     ),
                   ),
-                  SizedBox(
-                    height:
-                        pantallaBaja ? 14 : 22,
-                  ),
-                  _construirControles(
-                    pantallaEstrecha:
-                        pantallaEstrecha,
-                  ),
+                  SizedBox(height: pantallaBaja ? 14 : 22),
+                  _construirControles(pantallaEstrecha: pantallaEstrecha),
                 ],
               ),
             ),
@@ -811,22 +721,15 @@ class _PantallaRetoState extends State<PantallaReto>
 
   Widget _construirRetosEspecialesActivos() {
     return ConstrainedBox(
-      constraints: const BoxConstraints(
-        maxHeight: 210,
-        maxWidth: 80,
-      ),
+      constraints: const BoxConstraints(maxHeight: 210, maxWidth: 80),
       child: SingleChildScrollView(
-        physics:
-            const BouncingScrollPhysics(),
+        physics: const BouncingScrollPhysics(),
         child: Column(
-          crossAxisAlignment:
-              CrossAxisAlignment.start,
-          children:
-              retosEspecialesActivos.map((reto) {
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: retosEspecialesActivos.map((reto) {
             return Padding(
               key: ValueKey(reto.id),
-              padding:
-                  const EdgeInsets.only(bottom: 8),
+              padding: const EdgeInsets.only(bottom: 8),
               child: IconoRetoEspecial(
                 reto: reto,
                 onTap: () {
@@ -850,19 +753,13 @@ class _PantallaRetoState extends State<PantallaReto>
   // CONTROLES
   // =========================================================
 
-  Widget _construirControles({
-    required bool pantallaEstrecha,
-  }) {
+  Widget _construirControles({required bool pantallaEstrecha}) {
     if (mostrandoCastigo) {
       return SizedBox(
         width: double.infinity,
         child: ElevatedButton.icon(
-          onPressed: _puedeInteractuar
-              ? _terminarCastigo
-              : null,
-          label: const Text(
-            'Siguiente reto',
-          ),
+          onPressed: _puedeInteractuar ? _terminarCastigo : null,
+          label: const Text('Siguiente reto'),
         ),
       );
     }
@@ -871,16 +768,11 @@ class _PantallaRetoState extends State<PantallaReto>
       return SizedBox(
         width: double.infinity,
         child: ElevatedButton.icon(
-          onPressed: _puedeInteractuar
-              ? _aceptarRetoEspecial
-              : null,
+          onPressed: _puedeInteractuar ? _aceptarRetoEspecial : null,
           style: ElevatedButton.styleFrom(
-            backgroundColor:
-                AppColors.punishment,
+            backgroundColor: AppColors.punishment,
           ),
-          label: const Text(
-            'Aceptar reto especial',
-          ),
+          label: const Text('Aceptar reto especial'),
         ),
       );
     }
@@ -895,9 +787,7 @@ class _PantallaRetoState extends State<PantallaReto>
               color: AppColors.success,
               habilitado: _puedeInteractuar,
               onPressed: () {
-                completarReto(
-                  cumplio: true,
-                );
+                completarReto(cumplio: true);
               },
             ),
           ),
@@ -909,9 +799,7 @@ class _PantallaRetoState extends State<PantallaReto>
               color: AppColors.error,
               habilitado: _puedeInteractuar,
               onPressed: () {
-                completarReto(
-                  cumplio: false,
-                );
+                completarReto(cumplio: false);
               },
             ),
           ),
@@ -927,9 +815,7 @@ class _PantallaRetoState extends State<PantallaReto>
             color: AppColors.success,
             habilitado: _puedeInteractuar,
             onPressed: () {
-              completarReto(
-                cumplio: true,
-              );
+              completarReto(cumplio: true);
             },
           ),
         ),
@@ -940,9 +826,7 @@ class _PantallaRetoState extends State<PantallaReto>
             color: AppColors.error,
             habilitado: _puedeInteractuar,
             onPressed: () {
-              completarReto(
-                cumplio: false,
-              );
+              completarReto(cumplio: false);
             },
           ),
         ),
@@ -997,33 +881,24 @@ class _TarjetaGiratoria extends StatelessWidget {
     return AnimatedBuilder(
       animation: animation,
       builder: (context, child) {
-        final angulo =
-            animation.value * pi;
+        final angulo = animation.value * pi;
 
-        final mostrarFrente =
-            angulo <= pi / 2;
+        final mostrarFrente = angulo <= pi / 2;
 
-        final transformacion =
-            Matrix4.identity()
-              ..setEntry(3, 2, 0.0012)
-              ..rotateY(angulo);
+        final transformacion = Matrix4.identity()
+          ..setEntry(3, 2, 0.0012)
+          ..rotateY(angulo);
 
         return Transform(
           alignment: Alignment.center,
           transform: transformacion,
           child: mostrarFrente
-              ? IgnorePointer(
-                  ignoring:
-                      animation.value != 0,
-                  child: frente,
-                )
+              ? IgnorePointer(ignoring: animation.value != 0, child: frente)
               : Transform(
                   alignment: Alignment.center,
-                  transform: Matrix4.identity()
-                    ..rotateY(pi),
+                  transform: Matrix4.identity()..rotateY(pi),
                   child: IgnorePointer(
-                    ignoring:
-                        animation.value != 1,
+                    ignoring: animation.value != 1,
                     child: reverso,
                   ),
                 ),
@@ -1038,10 +913,7 @@ class _TarjetaGiratoria extends StatelessWidget {
 // ===========================================================
 
 class _TarjetaCastigo extends StatelessWidget {
-  const _TarjetaCastigo({
-    required this.textoCastigo,
-    required this.turno,
-  });
+  const _TarjetaCastigo({required this.textoCastigo, required this.turno});
 
   final String textoCastigo;
   final int turno;
@@ -1050,36 +922,27 @@ class _TarjetaCastigo extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final pantallaBaja =
-            constraints.maxHeight < 480;
+        final pantallaBaja = constraints.maxHeight < 480;
 
-        final pantallaEstrecha =
-            constraints.maxWidth < 360;
+        final pantallaEstrecha = constraints.maxWidth < 360;
 
         return Container(
           width: double.infinity,
           constraints: BoxConstraints(
             maxWidth: 520,
-            minHeight:
-                pantallaBaja ? 300 : 390,
-            maxHeight:
-                constraints.maxHeight,
+            minHeight: pantallaBaja ? 300 : 390,
+            maxHeight: constraints.maxHeight,
           ),
           clipBehavior: Clip.antiAlias,
           decoration: BoxDecoration(
-            gradient:
-                AppColors.punishmentGradient,
-            borderRadius: BorderRadius.circular(
-              AppSizes.radiusExtraLarge,
-            ),
+            gradient: AppColors.punishmentGradient,
+            borderRadius: BorderRadius.circular(AppSizes.radiusExtraLarge),
             border: Border.all(
-              color: AppColors.textOnPrimary
-                  .withValues(alpha: 0.20),
+              color: AppColors.textOnPrimary.withValues(alpha: 0.20),
             ),
             boxShadow: [
               BoxShadow(
-                color: AppColors.punishment
-                    .withValues(alpha: 0.28),
+                color: AppColors.punishment.withValues(alpha: 0.28),
                 blurRadius: 28,
                 offset: const Offset(0, 14),
               ),
@@ -1094,8 +957,7 @@ class _TarjetaCastigo extends StatelessWidget {
                   width: 130,
                   height: 130,
                   decoration: BoxDecoration(
-                    color: AppColors.textOnPrimary
-                        .withValues(alpha: 0.07),
+                    color: AppColors.textOnPrimary.withValues(alpha: 0.07),
                     shape: BoxShape.circle,
                   ),
                 ),
@@ -1107,8 +969,7 @@ class _TarjetaCastigo extends StatelessWidget {
                   width: 150,
                   height: 150,
                   decoration: BoxDecoration(
-                    color: AppColors.textOnPrimary
-                        .withValues(alpha: 0.05),
+                    color: AppColors.textOnPrimary.withValues(alpha: 0.05),
                     shape: BoxShape.circle,
                   ),
                 ),
@@ -1118,76 +979,62 @@ class _TarjetaCastigo extends StatelessWidget {
                   pantallaEstrecha
                       ? 20
                       : pantallaBaja
-                          ? 22
-                          : 28,
+                      ? 22
+                      : 28,
                 ),
                 child: Column(
                   children: [
                     Row(
                       children: [
-                      Container(
-                        width: pantallaBaja ? 58 : 64,
-                        height: pantallaBaja ? 58 : 64,
-                    padding: const EdgeInsets.all(5),
-                    decoration: BoxDecoration(
-                      color: AppColors.textOnPrimary.withValues(
-                      alpha: 0.14,
+                        Container(
+                          width: pantallaBaja ? 58 : 64,
+                          height: pantallaBaja ? 58 : 64,
+                          padding: const EdgeInsets.all(5),
+                          decoration: BoxDecoration(
+                            color: AppColors.textOnPrimary.withValues(
+                              alpha: 0.14,
+                            ),
+                            borderRadius: BorderRadius.circular(
+                              AppSizes.radiusMedium,
+                            ),
+                          ),
+                          child: Image.asset(
+                            'assets/images/castigo.png',
+                            fit: BoxFit.contain,
+                            filterQuality: FilterQuality.high,
+                            gaplessPlayback: true,
+                            errorBuilder: (context, error, stackTrace) {
+                              return const Icon(
+                                Icons.sentiment_very_satisfied_rounded,
+                                color: AppColors.textOnPrimary,
+                                size: 30,
+                              );
+                            },
+                          ),
                         ),
-                    borderRadius: BorderRadius.circular(
-                      AppSizes.radiusMedium,
-                        ),
-                      ),
-                  child: Image.asset(
-                    'assets/images/castigo.png',
-                  fit: BoxFit.contain,
-                  filterQuality: FilterQuality.high,
-                  gaplessPlayback: true,
-                  errorBuilder: (
-                  context,
-                  error,
-                  stackTrace,
-                  ) {
-      return const Icon(
-        Icons.sentiment_very_satisfied_rounded,
-        color: AppColors.textOnPrimary,
-        size: 30,
-      );
-    },
-  ),
-),
 
                         const SizedBox(width: 13),
                         Expanded(
                           child: Column(
-                            crossAxisAlignment:
-                                CrossAxisAlignment
-                                    .start,
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
                                 'CASTIGO',
                                 style: TextStyle(
-                                  color: AppColors
-                                      .textOnPrimary,
-                                  fontSize:
-                                      pantallaBaja
-                                          ? 19
-                                          : 21,
-                                  fontWeight:
-                                      FontWeight.w900,
+                                  color: AppColors.textOnPrimary,
+                                  fontSize: pantallaBaja ? 19 : 21,
+                                  fontWeight: FontWeight.w900,
                                   letterSpacing: 1.1,
                                 ),
                               ),
                               Text(
                                 'Turno $turno',
                                 style: TextStyle(
-                                  color: AppColors
-                                      .textOnPrimary
-                                      .withValues(
-                                        alpha: 0.75,
-                                      ),
+                                  color: AppColors.textOnPrimary.withValues(
+                                    alpha: 0.75,
+                                  ),
                                   fontSize: 13,
-                                  fontWeight:
-                                      FontWeight.w600,
+                                  fontWeight: FontWeight.w600,
                                 ),
                               ),
                             ],
@@ -1199,33 +1046,26 @@ class _TarjetaCastigo extends StatelessWidget {
                     Container(
                       width: double.infinity,
                       height: 1,
-                      color: AppColors.textOnPrimary
-                          .withValues(alpha: 0.16),
+                      color: AppColors.textOnPrimary.withValues(alpha: 0.16),
                     ),
                     const SizedBox(height: 18),
                     Expanded(
                       child: Center(
-                        child:
-                            SingleChildScrollView(
-                          physics:
-                              const BouncingScrollPhysics(),
+                        child: SingleChildScrollView(
+                          physics: const BouncingScrollPhysics(),
                           child: Text(
                             textoCastigo.isEmpty
                                 ? 'Preparando el castigo...'
                                 : textoCastigo,
-                            textAlign:
-                                TextAlign.center,
+                            textAlign: TextAlign.center,
                             style: TextStyle(
-                              color: AppColors
-                                  .textOnPrimary,
-                              fontSize:
-                                  pantallaEstrecha
-                                      ? 19
-                                      : pantallaBaja
-                                          ? 21
-                                          : 25,
-                              fontWeight:
-                                  FontWeight.w800,
+                              color: AppColors.textOnPrimary,
+                              fontSize: pantallaEstrecha
+                                  ? 19
+                                  : pantallaBaja
+                                  ? 21
+                                  : 25,
+                              fontWeight: FontWeight.w800,
                               height: 1.35,
                             ),
                           ),
@@ -1234,39 +1074,31 @@ class _TarjetaCastigo extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
                     Container(
-                      padding:
-                          const EdgeInsets.symmetric(
+                      padding: const EdgeInsets.symmetric(
                         horizontal: 14,
                         vertical: 10,
                       ),
                       decoration: BoxDecoration(
-                        color: AppColors.textOnPrimary
-                            .withValues(alpha: 0.11),
-                        borderRadius:
-                            BorderRadius.circular(
+                        color: AppColors.textOnPrimary.withValues(alpha: 0.11),
+                        borderRadius: BorderRadius.circular(
                           AppSizes.radiusMedium,
                         ),
                       ),
                       child: Row(
-                        mainAxisSize:
-                            MainAxisSize.min,
+                        mainAxisSize: MainAxisSize.min,
                         children: [
                           const SizedBox(width: 7),
                           Flexible(
                             child: Text(
                               'Completa el castigo para continuar',
                               maxLines: 2,
-                              textAlign:
-                                  TextAlign.center,
+                              textAlign: TextAlign.center,
                               style: TextStyle(
-                                color: AppColors
-                                    .textOnPrimary
-                                    .withValues(
-                                      alpha: 0.84,
-                                    ),
+                                color: AppColors.textOnPrimary.withValues(
+                                  alpha: 0.84,
+                                ),
                                 fontSize: 12,
-                                fontWeight:
-                                    FontWeight.w600,
+                                fontWeight: FontWeight.w600,
                               ),
                             ),
                           ),
@@ -1299,12 +1131,8 @@ class _IndicadorProcesando extends StatelessWidget {
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
         color: AppColors.surfaceElevated,
-        borderRadius: BorderRadius.circular(
-          AppSizes.radiusMedium,
-        ),
-        border: Border.all(
-          color: AppColors.border,
-        ),
+        borderRadius: BorderRadius.circular(AppSizes.radiusMedium),
+        border: Border.all(color: AppColors.border),
         boxShadow: const [
           BoxShadow(
             color: AppColors.shadow,
@@ -1347,22 +1175,15 @@ class _BotonResultado extends StatelessWidget {
         onPressed: habilitado ? onPressed : null,
         style: ElevatedButton.styleFrom(
           elevation: habilitado ? 3 : 0,
-          backgroundColor: habilitado
-              ? color
-              : AppColors.disabledBackground,
+          backgroundColor: habilitado ? color : AppColors.disabledBackground,
           foregroundColor: habilitado
               ? AppColors.textOnPrimary
               : AppColors.textMuted,
           shadowColor: color.withValues(alpha: 0.25),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(
-              AppSizes.radiusLarge,
-            ),
+            borderRadius: BorderRadius.circular(AppSizes.radiusLarge),
           ),
-          padding: const EdgeInsets.symmetric(
-            horizontal: 18,
-            vertical: 14,
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
         ),
         child: Text(
           texto,
@@ -1397,38 +1218,26 @@ class _BotonEncabezado extends StatelessWidget {
   Widget build(BuildContext context) {
     return IconButton(
       tooltip: tooltip,
-      onPressed:
-          habilitado ? onPressed : null,
+      onPressed: habilitado ? onPressed : null,
       style: IconButton.styleFrom(
-        foregroundColor:
-            AppColors.textOnPrimary,
-        disabledForegroundColor:
-            AppColors.textOnPrimary
-                .withValues(alpha: 0.45),
-        backgroundColor:
-            AppColors.textOnPrimary
-                .withValues(alpha: 0.12),
-        disabledBackgroundColor:
-            AppColors.textOnPrimary
-                .withValues(alpha: 0.06),
-        minimumSize:
-            const Size.square(44),
-        maximumSize:
-            const Size.square(44),
+        foregroundColor: AppColors.textOnPrimary,
+        disabledForegroundColor: AppColors.textOnPrimary.withValues(
+          alpha: 0.45,
+        ),
+        backgroundColor: AppColors.textOnPrimary.withValues(alpha: 0.12),
+        disabledBackgroundColor: AppColors.textOnPrimary.withValues(
+          alpha: 0.06,
+        ),
+        minimumSize: const Size.square(44),
+        maximumSize: const Size.square(44),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(
-            AppSizes.radiusMedium,
-          ),
+          borderRadius: BorderRadius.circular(AppSizes.radiusMedium),
           side: BorderSide(
-            color: AppColors.textOnPrimary
-                .withValues(alpha: 0.18),
+            color: AppColors.textOnPrimary.withValues(alpha: 0.18),
           ),
         ),
       ),
-      icon: Icon(
-        icon,
-        size: 23,
-      ),
+      icon: Icon(icon, size: 23),
     );
   }
 }
@@ -1457,14 +1266,8 @@ class _BotonParticipantes extends StatelessWidget {
             opacity: habilitado ? 1 : 0.45,
             duration: const Duration(milliseconds: 180),
             child: Container(
-              constraints: const BoxConstraints(
-                minWidth: 48,
-                minHeight: 44,
-              ),
-              padding: const EdgeInsets.symmetric(
-                horizontal: 11,
-                vertical: 9,
-              ),
+              constraints: const BoxConstraints(minWidth: 48, minHeight: 44),
+              padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 9),
               decoration: BoxDecoration(
                 color: AppColors.textOnPrimary.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(AppSizes.radiusMedium),

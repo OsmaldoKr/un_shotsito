@@ -1,22 +1,10 @@
-{
-    "version": "0.2.0",
-    "configurations": [
-        {
-            "name": "Flutter (Debug)",
-            "request": "launch",
-            "type": "dart"
-        },
-        {
-            "name": "Flutter (Profile)",
-            "request": "launch",
-            "type": "dart",
-            "flutterMode": "profile"
-        },
-        {
-            "name": "Flutter (Release)",
-            "request": "launch",
-            "type": "dart",
-            "flutterMode": "release"
-        }
-    ]
-}
+{"version":"0.2.0","configurations":[
+    {
+        "name":"UnShotsito · Catálogo grupal",
+        "type":"dart",
+        "request":"launch",
+        "program":"lib/main.dart",
+        "toolArgs":
+        ["--dart-define=SUPABASE_URL=https://yqbswgturqhxcpthcgrr.supabase.co",
+        "--dart-define=SUPABASE_PUBLISHABLE_KEY=sb_publishable_3ohA78bAvcf1qe0Gtmxk8A_SPfZlfVQ"]}]}
+

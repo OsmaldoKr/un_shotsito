@@ -1,17 +1,15 @@
 import 'package:flutter/material.dart';
 import '../theme.dart';
+import '../data/catalogo_grupal.dart';
 import 'pantalla_reto.dart';
 
 class PantallaTipoJuego extends StatefulWidget {
-  const PantallaTipoJuego({
-    required this.jugadores, super.key,
-  });
+  const PantallaTipoJuego({required this.jugadores, super.key});
 
   final List<String> jugadores;
 
   @override
-  State<PantallaTipoJuego> createState() =>
-      _PantallaTipoJuegoState();
+  State<PantallaTipoJuego> createState() => _PantallaTipoJuegoState();
 }
 
 class _PantallaTipoJuegoState extends State<PantallaTipoJuego> {
@@ -20,82 +18,50 @@ class _PantallaTipoJuegoState extends State<PantallaTipoJuego> {
   int _paginaActual = 0;
   bool _navegando = false;
 
-  static const List<TipoJuego> _tiposJuego = [
-    TipoJuego(
-      titulo: 'SHOTS LIGEROS',
-      nombreVisible: 'Shots ligeros',
-      descripcion: 'Retos suaves para comenzar la fiesta.',
-      icono: 'assets/images/shot_ligeros.png',
-      color: AppColors.challenge,
-      intensidad: 'Suave',
-      iconoIntensidad: Icons.sentiment_satisfied_alt_rounded,
-    ),
-    TipoJuego(
-      titulo: 'SHOTS PICANTES',
-      nombreVisible: 'Shots picantes',
-      descripcion: 'Retos atrevidos que aumentan la intensidad.',
-      icono: 'assets/images/shot_picante.png',
-      color: AppColors.intense,
-      intensidad: 'Intenso',
-      iconoIntensidad: Icons.local_fire_department_rounded,
-    ),
-    TipoJuego(
-      titulo: 'SHOTS NOCTURNOS',
-      nombreVisible: 'Shots nocturnos',
-      descripcion: 'Retos para continuar la fiesta hasta tarde.',
-      icono: 'assets/images/shot_nocturnos.png',
-      color: AppColors.random,
-      intensidad: 'Nocturno',
-      iconoIntensidad: Icons.dark_mode_rounded,
-    ),
-    TipoJuego(
-      titulo: 'SHOTS CALIENTES',
-      nombreVisible: 'Shots calientes',
-      descripcion: 'Retos atrevidos para subir la intensidad.',
-      icono: 'assets/images/shot_calientes.png',
-      color: AppColors.punishment,
-      intensidad: 'Caliente',
-      iconoIntensidad: Icons.whatshot_rounded,
-    ),
-    TipoJuego(
-      titulo: 'SHOTS EN PAREJA',
-      nombreVisible: 'Shots en pareja',
-      descripcion: 'Retos diseñados para compartir con tu pareja.',
-      icono: 'assets/images/shot_pareja.png',
-      color: AppColors.group,
-      intensidad: 'Parejas',
-      iconoIntensidad: Icons.favorite_rounded,
-    ),
-    TipoJuego(
-      titulo: 'SHOTS DE BAR',
-      nombreVisible: 'Shots de bar',
-      descripcion: 'Retos clásicos para compartir entre amigos.',
-      icono: 'assets/images/shot_bar.png',
-      color: AppColors.primary,
-      intensidad: 'Clásico',
-      iconoIntensidad: Icons.local_bar_rounded,
-    ),
-    TipoJuego(
-      titulo: 'SHOTS PARA CONFESAR',
-      nombreVisible: 'Shots para confesar',
-      descripcion: 'Preguntas, secretos y verdades inesperadas.',
-      icono: 'assets/images/shot_confesar.png',
-      color: AppColors.relaxed,
-      intensidad: 'Confesiones',
-      iconoIntensidad: Icons.record_voice_over_rounded,
-    ),
-  ];
+  CatalogoGrupal? _catalogo;
+  List<TipoJuego> _tiposJuego = [];
+  String? _error;
 
-  TipoJuego get _tipoSeleccionado =>
-      _tiposJuego[_paginaActual];
+  Future<void> _cargar() async {
+    setState(() {
+      _catalogo = null;
+      _error = null;
+      _paginaActual = 0;
+    });
+    try {
+      final datos = await CatalogoGrupal.cargar();
+      if (!mounted) return;
+      setState(() {
+        _catalogo = datos;
+        _tiposJuego = datos.categorias
+            .map(
+              (c) => TipoJuego(
+                titulo: c.nombre,
+                nombreVisible: c.nombre,
+                descripcion: c.retos.isEmpty
+                    ? 'Todavía no hay retos activos.'
+                    : 'Elegí esta categoría para jugar en grupo.',
+                icono: 'assets/images/logo_UnShotsito.png',
+                color: AppColors.group,
+                intensidad: '${c.retos.length} retos',
+                iconoIntensidad: Icons.style_outlined,
+              ),
+            )
+            .toList();
+      });
+    } catch (e) {
+      if (mounted) setState(() => _error = e.toString());
+    }
+  }
+
+  TipoJuego get _tipoSeleccionado => _tiposJuego[_paginaActual];
 
   @override
   void initState() {
     super.initState();
 
-    _pageController = PageController(
-      viewportFraction: 0.84,
-    );
+    _pageController = PageController(viewportFraction: 0.84, keepPage: false);
+    _cargar();
   }
 
   @override
@@ -104,10 +70,18 @@ class _PantallaTipoJuegoState extends State<PantallaTipoJuego> {
     super.dispose();
   }
 
-  Future<void> _abrirCategoria(
-    TipoJuego tipo,
-  ) async {
+  Future<void> _abrirCategoria(TipoJuego tipo) async {
     if (_navegando) return;
+    final datos = _catalogo!;
+    final categoria = datos.categorias[_tiposJuego.indexOf(tipo)];
+    if (categoria.retos.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Esta categoría todavía no tiene retos activos.'),
+        ),
+      );
+      return;
+    }
 
     setState(() {
       _navegando = true;
@@ -116,24 +90,16 @@ class _PantallaTipoJuegoState extends State<PantallaTipoJuego> {
     await Navigator.of(context).push(
       PageRouteBuilder<void>(
         transitionDuration: const Duration(milliseconds: 480),
-        reverseTransitionDuration:
-            const Duration(milliseconds: 350),
-        pageBuilder: (
-          context,
-          animation,
-          secondaryAnimation,
-        ) {
+        reverseTransitionDuration: const Duration(milliseconds: 350),
+        pageBuilder: (context, animation, secondaryAnimation) {
           return PantallaReto(
             jugadores: List<String>.from(widget.jugadores),
             tipo: tipo.titulo,
+            catalogo: datos,
+            categoria: categoria,
           );
         },
-        transitionsBuilder: (
-          context,
-          animation,
-          secondaryAnimation,
-          child,
-        ) {
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
           final curvedAnimation = CurvedAnimation(
             parent: animation,
             curve: Curves.easeOutCubic,
@@ -158,37 +124,54 @@ class _PantallaTipoJuegoState extends State<PantallaTipoJuego> {
     setState(() {
       _navegando = false;
     });
+    await _cargar();
   }
 
   @override
   Widget build(BuildContext context) {
+    if (_catalogo == null || _tiposJuego.isEmpty) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Categorías')),
+        body: Center(
+          child: _catalogo == null && _error == null
+              ? const CircularProgressIndicator()
+              : Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(_error ?? 'No hay categorías grupales activas.'),
+                      TextButton(
+                        onPressed: _cargar,
+                        child: const Text('Volver a cargar'),
+                      ),
+                    ],
+                  ),
+                ),
+        ),
+      );
+    }
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
-            final pantallaEstrecha =
-                constraints.maxWidth < 360;
+            final pantallaEstrecha = constraints.maxWidth < 360;
 
-            final pantallaBaja =
-                constraints.maxHeight < 650;
+            final pantallaBaja = constraints.maxHeight < 650;
 
             return Column(
               children: [
                 _EncabezadoTipoJuego(
-                  cantidadJugadores:
-                      widget.jugadores.length,
+                  cantidadJugadores: widget.jugadores.length,
                   pantallaEstrecha: pantallaEstrecha,
                 ),
-                SizedBox(
-                  height: pantallaBaja ? 8 : 14,
-                ),
+                SizedBox(height: pantallaBaja ? 8 : 14),
                 Expanded(
                   child: PageView.builder(
                     controller: _pageController,
                     itemCount: _tiposJuego.length,
-                    physics:
-                        const BouncingScrollPhysics(),
+                    physics: const BouncingScrollPhysics(),
                     onPageChanged: (index) {
                       setState(() {
                         _paginaActual = index;
@@ -200,67 +183,51 @@ class _PantallaTipoJuegoState extends State<PantallaTipoJuego> {
                         child: Padding(
                           padding: EdgeInsets.symmetric(
                             horizontal: 7,
-                            vertical:
-                                pantallaBaja ? 10 : 18,
+                            vertical: pantallaBaja ? 10 : 18,
                           ),
                           child: TarjetaTipoJuego(
                             tipo: _tiposJuego[index],
-                            seleccionado:
-                                index == _paginaActual,
+                            seleccionado: index == _paginaActual,
                             pantallaBaja: pantallaBaja,
                             onTap: () {
-                              if (index !=
-                                  _paginaActual) {
-                                _pageController
-                                    .animateToPage(
+                              if (index != _paginaActual) {
+                                _pageController.animateToPage(
                                   index,
-                                  duration: const Duration(
-                                    milliseconds: 320,
-                                  ),
-                                  curve:
-                                      Curves.easeOutCubic,
+                                  duration: const Duration(milliseconds: 320),
+                                  curve: Curves.easeOutCubic,
                                 );
 
                                 return;
                               }
 
-                              _abrirCategoria(
-                                _tiposJuego[index],
-                              );
+                              _abrirCategoria(_tiposJuego[index]);
                             },
                           ),
                         ),
                         builder: (context, child) {
                           var diferencia = 0.0;
 
-                          if (_pageController
-                              .hasClients) {
+                          if (_pageController.hasClients) {
                             final page =
-                                _pageController
-                                        .page ??
-                                    _paginaActual
-                                        .toDouble();
+                                _pageController.page ??
+                                _paginaActual.toDouble();
 
-                            diferencia =
-                                page - index;
+                            diferencia = page - index;
                           }
 
-                          final escala = (1 -
-                                  diferencia.abs() *
-                                      0.08)
-                              .clamp(0.90, 1.0);
+                          final escala = (1 - diferencia.abs() * 0.08).clamp(
+                            0.90,
+                            1.0,
+                          );
 
-                          final opacidad = (1 -
-                                  diferencia.abs() *
-                                      0.22)
-                              .clamp(0.72, 1.0);
+                          final opacidad = (1 - diferencia.abs() * 0.22).clamp(
+                            0.72,
+                            1.0,
+                          );
 
                           return Transform.scale(
                             scale: escala,
-                            child: Opacity(
-                              opacity: opacidad,
-                              child: child,
-                            ),
+                            child: Opacity(opacity: opacidad, child: child),
                           );
                         },
                       );
@@ -271,9 +238,7 @@ class _PantallaTipoJuegoState extends State<PantallaTipoJuego> {
                   cantidad: _tiposJuego.length,
                   seleccionado: _paginaActual,
                 ),
-                SizedBox(
-                  height: pantallaBaja ? 12 : 18,
-                ),
+                SizedBox(height: pantallaBaja ? 12 : 18),
                 Padding(
                   padding: EdgeInsets.fromLTRB(
                     pantallaEstrecha ? 16 : 22,
@@ -285,9 +250,7 @@ class _PantallaTipoJuegoState extends State<PantallaTipoJuego> {
                     tipo: _tipoSeleccionado,
                     navegando: _navegando,
                     onPressed: () {
-                      _abrirCategoria(
-                        _tipoSeleccionado,
-                      );
+                      _abrirCategoria(_tipoSeleccionado);
                     },
                   ),
                 ),
@@ -350,89 +313,55 @@ class _EncabezadoTipoJuego extends StatelessWidget {
         children: [
           IconButton(
             tooltip: 'Volver',
-            onPressed: () =>
-                Navigator.pop(context),
+            onPressed: () => Navigator.pop(context),
             style: IconButton.styleFrom(
               backgroundColor: AppColors.surface,
-              foregroundColor:
-                  AppColors.textPrimary,
+              foregroundColor: AppColors.textPrimary,
               minimumSize: const Size.square(46),
               maximumSize: const Size.square(46),
-              side: const BorderSide(
-                color: AppColors.border,
-              ),
+              side: const BorderSide(color: AppColors.border),
               shape: RoundedRectangleBorder(
-                borderRadius:
-                    BorderRadius.circular(
-                  AppSizes.radiusMedium,
-                ),
+                borderRadius: BorderRadius.circular(AppSizes.radiusMedium),
               ),
             ),
-            icon: const Icon(
-              Icons.arrow_back_rounded,
-              size: 23,
-            ),
+            icon: const Icon(Icons.arrow_back_rounded, size: 23),
           ),
           const SizedBox(width: 13),
           Expanded(
             child: Column(
-              crossAxisAlignment:
-                  CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   'Elige una categoría',
                   maxLines: 1,
-                  overflow:
-                      TextOverflow.ellipsis,
-                  style: Theme.of(context)
-                      .textTheme
-                      .headlineSmall
-                      ?.copyWith(
-                        color:
-                            AppColors.textPrimary,
-                        fontSize: pantallaEstrecha
-                            ? 21
-                            : 24,
-                        fontWeight:
-                            FontWeight.w900,
-                      ),
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    color: AppColors.textPrimary,
+                    fontSize: pantallaEstrecha ? 21 : 24,
+                    fontWeight: FontWeight.w900,
+                  ),
                 ),
                 const SizedBox(height: 3),
                 Text(
                   'Desliza para descubrir los retos',
                   maxLines: 1,
-                  overflow:
-                      TextOverflow.ellipsis,
-                  style: Theme.of(context)
-                      .textTheme
-                      .bodySmall
-                      ?.copyWith(
-                        color:
-                            AppColors.textSecondary,
-                        fontSize: 13,
-                      ),
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: AppColors.textSecondary,
+                    fontSize: 13,
+                  ),
                 ),
               ],
             ),
           ),
           const SizedBox(width: 10),
           Container(
-            constraints: const BoxConstraints(
-              minWidth: 48,
-              minHeight: 44,
-            ),
-            padding: const EdgeInsets.symmetric(
-              horizontal: 11,
-              vertical: 9,
-            ),
+            constraints: const BoxConstraints(minWidth: 48, minHeight: 44),
+            padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 9),
             decoration: BoxDecoration(
               color: AppColors.surface,
-              borderRadius: BorderRadius.circular(
-                AppSizes.radiusMedium,
-              ),
-              border: Border.all(
-                color: AppColors.border,
-              ),
+              borderRadius: BorderRadius.circular(AppSizes.radiusMedium),
+              border: Border.all(color: AppColors.border),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
@@ -466,7 +395,11 @@ class _EncabezadoTipoJuego extends StatelessWidget {
 
 class TarjetaTipoJuego extends StatelessWidget {
   const TarjetaTipoJuego({
-    required this.tipo, required this.seleccionado, required this.pantallaBaja, required this.onTap, super.key,
+    required this.tipo,
+    required this.seleccionado,
+    required this.pantallaBaja,
+    required this.onTap,
+    super.key,
   });
 
   final TipoJuego tipo;
@@ -479,59 +412,41 @@ class TarjetaTipoJuego extends StatelessWidget {
     return Semantics(
       button: true,
       selected: seleccionado,
-      label:
-          '${tipo.nombreVisible}. ${tipo.descripcion}',
+      label: '${tipo.nombreVisible}. ${tipo.descripcion}',
       child: Material(
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(
-          AppSizes.radiusExtraLarge,
-        ),
+        borderRadius: BorderRadius.circular(AppSizes.radiusExtraLarge),
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(
-            AppSizes.radiusExtraLarge,
-          ),
-          splashColor:
-              tipo.color.withValues(alpha: 0.08),
-          highlightColor:
-              tipo.color.withValues(alpha: 0.04),
+          borderRadius: BorderRadius.circular(AppSizes.radiusExtraLarge),
+          splashColor: tipo.color.withValues(alpha: 0.08),
+          highlightColor: tipo.color.withValues(alpha: 0.04),
           child: AnimatedContainer(
-            duration:
-                const Duration(milliseconds: 280),
+            duration: const Duration(milliseconds: 280),
             curve: Curves.easeOutCubic,
             width: double.infinity,
             decoration: BoxDecoration(
               color: AppColors.surfaceElevated,
-              borderRadius: BorderRadius.circular(
-                AppSizes.radiusExtraLarge,
-              ),
+              borderRadius: BorderRadius.circular(AppSizes.radiusExtraLarge),
               border: Border.all(
                 color: seleccionado
-                    ? tipo.color.withValues(
-                        alpha: 0.42,
-                      )
+                    ? tipo.color.withValues(alpha: 0.42)
                     : AppColors.border,
                 width: seleccionado ? 1.6 : 1,
               ),
               boxShadow: [
                 BoxShadow(
                   color: seleccionado
-                      ? tipo.color.withValues(
-                          alpha: 0.18,
-                        )
+                      ? tipo.color.withValues(alpha: 0.18)
                       : AppColors.shadow,
-                  blurRadius:
-                      seleccionado ? 28 : 16,
-                  spreadRadius:
-                      seleccionado ? 1 : 0,
+                  blurRadius: seleccionado ? 28 : 16,
+                  spreadRadius: seleccionado ? 1 : 0,
                   offset: const Offset(0, 12),
                 ),
               ],
             ),
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(
-                AppSizes.radiusExtraLarge,
-              ),
+              borderRadius: BorderRadius.circular(AppSizes.radiusExtraLarge),
               child: Stack(
                 children: [
                   Positioned(
@@ -541,8 +456,7 @@ class TarjetaTipoJuego extends StatelessWidget {
                       width: 175,
                       height: 175,
                       decoration: BoxDecoration(
-                        color: tipo.color
-                            .withValues(alpha: 0.06),
+                        color: tipo.color.withValues(alpha: 0.06),
                         shape: BoxShape.circle,
                       ),
                     ),
@@ -554,8 +468,7 @@ class TarjetaTipoJuego extends StatelessWidget {
                       width: 190,
                       height: 190,
                       decoration: BoxDecoration(
-                        color: tipo.color
-                            .withValues(alpha: 0.04),
+                        color: tipo.color.withValues(alpha: 0.04),
                         shape: BoxShape.circle,
                       ),
                     ),
@@ -584,34 +497,28 @@ class TarjetaTipoJuego extends StatelessWidget {
                             child: Hero(
                               tag: 'shot-${tipo.titulo}',
                               child: AnimatedContainer(
-                                duration: const Duration(
-                                  milliseconds: 280,
-                                ),
+                                duration: const Duration(milliseconds: 280),
                                 curve: Curves.easeOutCubic,
                                 width: double.infinity,
                                 constraints: BoxConstraints(
                                   maxWidth: seleccionado
                                       ? pantallaBaja
-                                          ? 210
-                                          : 260
+                                            ? 210
+                                            : 260
                                       : pantallaBaja
-                                          ? 190
-                                          : 235,
+                                      ? 190
+                                      : 235,
                                   maxHeight: seleccionado
                                       ? pantallaBaja
-                                          ? 210
-                                          : 260
+                                            ? 210
+                                            : 260
                                       : pantallaBaja
-                                          ? 190
-                                          : 235,
+                                      ? 190
+                                      : 235,
                                 ),
-                                padding: EdgeInsets.all(
-                                  pantallaBaja ? 4 : 6,
-                                ),
+                                padding: EdgeInsets.all(pantallaBaja ? 4 : 6),
                                 decoration: BoxDecoration(
-                                  color: tipo.color.withValues(
-                                    alpha: 0.055,
-                                  ),
+                                  color: tipo.color.withValues(alpha: 0.055),
                                   borderRadius: BorderRadius.circular(
                                     AppSizes.radiusExtraLarge,
                                   ),
@@ -622,11 +529,7 @@ class TarjetaTipoJuego extends StatelessWidget {
                                   filterQuality: FilterQuality.high,
                                   gaplessPlayback: true,
                                   semanticLabel: tipo.nombreVisible,
-                                  errorBuilder: (
-                                    context,
-                                    error,
-                                    stackTrace,
-                                  ) {
+                                  errorBuilder: (context, error, stackTrace) {
                                     return Center(
                                       child: Column(
                                         mainAxisSize: MainAxisSize.min,
@@ -650,86 +553,69 @@ class TarjetaTipoJuego extends StatelessWidget {
                                       ),
                                     );
                                   },
-                                  frameBuilder: (
-                                    context,
-                                    child,
-                                    frame,
-                                    wasSynchronouslyLoaded,
-                                  ) {
-                                    if (wasSynchronouslyLoaded ||
-                                        frame != null) {
-                                      return AnimatedOpacity(
-                                        opacity: 1,
-                                        duration: const Duration(
-                                          milliseconds: 250,
-                                        ),
-                                        child: child,
-                                      );
-                                    }
+                                  frameBuilder:
+                                      (
+                                        context,
+                                        child,
+                                        frame,
+                                        wasSynchronouslyLoaded,
+                                      ) {
+                                        if (wasSynchronouslyLoaded ||
+                                            frame != null) {
+                                          return AnimatedOpacity(
+                                            opacity: 1,
+                                            duration: const Duration(
+                                              milliseconds: 250,
+                                            ),
+                                            child: child,
+                                          );
+                                        }
 
-                                    return Center(
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 3,
-                                        color: tipo.color,
-                                      ),
-                                    );
-                                  },
+                                        return Center(
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 3,
+                                            color: tipo.color,
+                                          ),
+                                        );
+                                      },
                                 ),
                               ),
                             ),
                           ),
                         ),
-                        SizedBox(
-                          height: pantallaBaja ? 8 : 12,
-                        ),
+                        SizedBox(height: pantallaBaja ? 8 : 12),
                         Container(
                           width: double.infinity,
-                          padding: EdgeInsets.all(
-                            pantallaBaja ? 16 : 19,
-                          ),
+                          padding: EdgeInsets.all(pantallaBaja ? 16 : 19),
                           decoration: BoxDecoration(
                             color: AppColors.surface,
-                            borderRadius:
-                                BorderRadius.circular(
+                            borderRadius: BorderRadius.circular(
                               AppSizes.radiusLarge,
                             ),
-                            border: Border.all(
-                              color: AppColors.border,
-                            ),
+                            border: Border.all(color: AppColors.border),
                           ),
                           child: Column(
                             children: [
                               Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment
-                                        .center,
+                                mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Icon(
                                     tipo.iconoIntensidad,
                                     color: tipo.color,
                                     size: 20,
                                   ),
-                                  const SizedBox(
-                                    width: 7,
-                                  ),
+                                  const SizedBox(width: 7),
                                   Flexible(
                                     child: Text(
                                       tipo.intensidad,
                                       maxLines: 1,
-                                      overflow:
-                                          TextOverflow
-                                              .ellipsis,
-                                      style: Theme.of(
-                                        context,
-                                      )
+                                      overflow: TextOverflow.ellipsis,
+                                      style: Theme.of(context)
                                           .textTheme
                                           .labelMedium
                                           ?.copyWith(
-                                            color:
-                                                tipo.color,
-                                            fontWeight:
-                                                FontWeight
-                                                    .w800,
+                                            color: tipo.color,
+                                            fontWeight: FontWeight.w800,
                                           ),
                                     ),
                                   ),
@@ -738,46 +624,28 @@ class TarjetaTipoJuego extends StatelessWidget {
                               const SizedBox(height: 9),
                               Text(
                                 tipo.nombreVisible,
-                                textAlign:
-                                    TextAlign.center,
+                                textAlign: TextAlign.center,
                                 maxLines: 2,
-                                overflow:
-                                    TextOverflow.ellipsis,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .titleLarge
+                                overflow: TextOverflow.ellipsis,
+                                style: Theme.of(context).textTheme.titleLarge
                                     ?.copyWith(
-                                      color: AppColors
-                                          .textPrimary,
-                                      fontSize:
-                                          pantallaBaja
-                                              ? 19
-                                              : 22,
-                                      fontWeight:
-                                          FontWeight.w900,
+                                      color: AppColors.textPrimary,
+                                      fontSize: pantallaBaja ? 19 : 22,
+                                      fontWeight: FontWeight.w900,
                                       height: 1.15,
                                     ),
                               ),
                               const SizedBox(height: 7),
                               Text(
                                 tipo.descripcion,
-                                textAlign:
-                                    TextAlign.center,
+                                textAlign: TextAlign.center,
                                 maxLines: 3,
-                                overflow:
-                                    TextOverflow.ellipsis,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodyMedium
+                                overflow: TextOverflow.ellipsis,
+                                style: Theme.of(context).textTheme.bodyMedium
                                     ?.copyWith(
-                                      color: AppColors
-                                          .textSecondary,
-                                      fontSize:
-                                          pantallaBaja
-                                              ? 13
-                                              : 14,
-                                      fontWeight:
-                                          FontWeight.w500,
+                                      color: AppColors.textSecondary,
+                                      fontSize: pantallaBaja ? 13 : 14,
+                                      fontWeight: FontWeight.w500,
                                       height: 1.4,
                                     ),
                               ),
@@ -786,17 +654,13 @@ class TarjetaTipoJuego extends StatelessWidget {
                         ),
                         const SizedBox(height: 14),
                         Row(
-                          mainAxisAlignment:
-                              MainAxisAlignment.center,
+                          mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Icon(
                               seleccionado
-                                  ? Icons
-                                      .swipe_rounded
-                                  : Icons
-                                      .touch_app_rounded,
-                              color:
-                                  AppColors.textMuted,
+                                  ? Icons.swipe_rounded
+                                  : Icons.touch_app_rounded,
+                              color: AppColors.textMuted,
                               size: 18,
                             ),
                             const SizedBox(width: 7),
@@ -804,15 +668,11 @@ class TarjetaTipoJuego extends StatelessWidget {
                               seleccionado
                                   ? 'Desliza para cambiar'
                                   : 'Toca para seleccionar',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodySmall
+                              style: Theme.of(context).textTheme.bodySmall
                                   ?.copyWith(
-                                    color: AppColors
-                                        .textMuted,
+                                    color: AppColors.textMuted,
                                     fontSize: 12,
-                                    fontWeight:
-                                        FontWeight.w600,
+                                    fontWeight: FontWeight.w600,
                                   ),
                             ),
                           ],
@@ -846,37 +706,24 @@ class _IndicadoresCategorias extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Semantics(
-      label:
-          'Categoría ${seleccionado + 1} de $cantidad',
+      label: 'Categoría ${seleccionado + 1} de $cantidad',
       child: Row(
-        mainAxisAlignment:
-            MainAxisAlignment.center,
-        children: List.generate(
-          cantidad,
-          (index) {
-            final activo =
-                index == seleccionado;
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: List.generate(cantidad, (index) {
+          final activo = index == seleccionado;
 
-            return AnimatedContainer(
-              duration:
-                  const Duration(milliseconds: 230),
-              curve: Curves.easeOut,
-              width: activo ? 24 : 7,
-              height: 7,
-              margin:
-                  const EdgeInsets.symmetric(
-                horizontal: 4,
-              ),
-              decoration: BoxDecoration(
-                color: activo
-                    ? AppColors.primary
-                    : AppColors.border,
-                borderRadius:
-                    BorderRadius.circular(20),
-              ),
-            );
-          },
-        ),
+          return AnimatedContainer(
+            duration: const Duration(milliseconds: 230),
+            curve: Curves.easeOut,
+            width: activo ? 24 : 7,
+            height: 7,
+            margin: const EdgeInsets.symmetric(horizontal: 4),
+            decoration: BoxDecoration(
+              color: activo ? AppColors.primary : AppColors.border,
+              borderRadius: BorderRadius.circular(20),
+            ),
+          );
+        }),
       ),
     );
   }
@@ -904,37 +751,29 @@ class _BotonJugarCategoria extends StatelessWidget {
       child: ElevatedButton(
         onPressed: navegando ? null : onPressed,
         child: AnimatedSwitcher(
-          duration:
-              const Duration(milliseconds: 220),
+          duration: const Duration(milliseconds: 220),
           child: navegando
               ? const SizedBox(
                   key: ValueKey('loading'),
                   width: 23,
                   height: 23,
-                  child:
-                      CircularProgressIndicator(
+                  child: CircularProgressIndicator(
                     strokeWidth: 3,
-                    color:
-                        AppColors.textOnPrimary,
+                    color: AppColors.textOnPrimary,
                     strokeCap: StrokeCap.round,
                   ),
                 )
               : Row(
                   key: ValueKey(tipo.titulo),
-                  mainAxisAlignment:
-                      MainAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(
-                      Icons.play_arrow_rounded,
-                      size: 25,
-                    ),
+                    const Icon(Icons.play_arrow_rounded, size: 25),
                     const SizedBox(width: 8),
                     Flexible(
                       child: Text(
                         'Jugar ${tipo.nombreVisible}',
                         maxLines: 1,
-                        overflow:
-                            TextOverflow.ellipsis,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                   ],
