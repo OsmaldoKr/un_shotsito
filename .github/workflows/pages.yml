@@ -1,15 +1,19 @@
 name: Publicar panel en GitHub Pages
+
 on:
   push:
-    branches: [main]
+    branches: [master]
   workflow_dispatch:
+
 permissions:
   contents: read
   pages: write
   id-token: write
+
 concurrency:
   group: pages
   cancel-in-progress: false
+
 jobs:
   publicar:
     runs-on: ubuntu-latest
@@ -18,21 +22,66 @@ jobs:
       url: ${{ steps.deploy.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
+
+      - name: Localizar el panel en el repositorio
+        id: panel
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          import subprocess
+          from pathlib import Path
+
+          archivos = subprocess.check_output(["git", "ls-files", "-z"]).decode().split("\0")
+          carpetas = []
+          for archivo in archivos:
+              ruta = Path(archivo)
+              if ruta.name != "package.json":
+                  continue
+              datos = json.loads(ruta.read_text(encoding="utf-8-sig"))
+              if datos.get("name") == "unshotsito-admin":
+                  carpetas.append(ruta.parent)
+          if len(carpetas) != 1:
+              raise SystemExit(f"Se esperaba un panel unshotsito-admin y se encontraron {len(carpetas)}. Revisá que el proyecto esté descomprimido en la rama seleccionada.")
+          carpeta = carpetas[0]
+          lock = carpeta / "package-lock.json"
+          if str(lock) not in archivos:
+              raise SystemExit(f"Subí el package-lock.json del panel a {carpeta}, junto a package.json.")
+          with open(os.environ["GITHUB_OUTPUT"], "a") as salida:
+              print(f"carpeta={carpeta}", file=salida)
+              print(f"lock={lock}", file=salida)
+          print(f"Panel encontrado en {carpeta}")
+          PY
+
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
+          cache-dependency-path: ${{ steps.panel.outputs.lock }}
+
       - uses: actions/configure-pages@v5
-      - run: npm ci
-      - name: Compilar con el catálogo compartido
+        id: pages
+
+      - name: Instalar dependencias
+        working-directory: ${{ steps.panel.outputs.carpeta }}
+        run: npm ci
+
+      - name: Compilar el panel
+        working-directory: ${{ steps.panel.outputs.carpeta }}
         env:
           VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
           VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.VITE_SUPABASE_PUBLISHABLE_KEY }}
+          BASE_PATH: ${{ steps.pages.outputs.base_path }}
         run: |
-          test -n "$VITE_SUPABASE_URL" && test -n "$VITE_SUPABASE_PUBLISHABLE_KEY" || { echo "Configurá ambas variables de Supabase"; exit 1; }
-          npm run build
+          : "${VITE_SUPABASE_URL:?Configurá VITE_SUPABASE_URL en Repository variables}"
+          : "${VITE_SUPABASE_PUBLISHABLE_KEY:?Configurá VITE_SUPABASE_PUBLISHABLE_KEY en Repository variables}"
+          npm run build -- --base "${BASE_PATH%/}/"
+
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: dist
-      - id: deploy
+          path: ${{ steps.panel.outputs.carpeta }}/dist
+
+      - name: Publicar
+        id: deploy
         uses: actions/deploy-pages@v4
